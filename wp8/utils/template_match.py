@@ -85,20 +85,22 @@ class TemplateMatch:
 
         def show(frame, tomatch, templates):
             """Shows templates, frame and frame ROI from which to extract the digits."""
-            fig, ax = plt.subplots(nrows=1, ncols=len(templates), figsize=(30, 30))
+            fig, ax = plt.subplots(nrows=1, ncols=len(templates), figsize=(20, 30))
             for count, col in enumerate(ax):  # type: ignore
                 col.imshow(self.templates[count], cmap="gray")
                 col.set_title(f"template {count}")
-            fig.suptitle("Templates")
+            plt.title("Templates")
             plt.show()
 
-            fig2 = plt.figure()
-            fig2.suptitle("Frame")
+            plt.figure(figsize=(20, 20))
+            plt.title("Frame")
             plt.imshow(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+            plt.show()
 
-            fig3 = plt.figure()
-            fig3.suptitle("ROI to perform Template Matching on")
+            plt.figure()
+            plt.title("ROI to perform Template Matching on")
             plt.imshow(tomatch, cmap="gray")
+            plt.show()
 
         if len(self.templates[0].shape) > 2:
             self.__pre_process_templates()
@@ -110,13 +112,13 @@ class TemplateMatch:
         tomatch = frame[top_y : top_y + bottom_y, top_x : top_x + bottom_x]
         tomatch = pre_process(tomatch)
 
-        if test == True:
+        if test:
             show(frame, tomatch, self.templates)
 
         tomatch_copy = tomatch.copy()
-        x1Coords = (
-            {}
-        )  # dict will contain starting x coordinates of template's digits bounding boxes
+
+        # dict will contain starting x coordinates of template's digits bounding boxes
+        x1Coords = {}
 
         for template_number, _ in enumerate(self.templates):
             curr_template = self.templates[template_number]
@@ -146,7 +148,11 @@ class TemplateMatch:
                     cv2.rectangle(
                         tomatch_copy, (startX, startY), (endX, endY), (0, 0, 0), 3
                     )
+            if template_number == len(self.templates) - 1:
+                plt.figure()
                 plt.imshow(tomatch_copy, cmap="gray")
+                plt.title("Bounding boxes")
+                plt.show()
 
         x1Coords_unique = OrderedDict(sorted(x1Coords.items()))
         digits = list(x1Coords_unique.values())

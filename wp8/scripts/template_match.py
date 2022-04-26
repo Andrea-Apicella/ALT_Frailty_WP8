@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from imutils.object_detection import non_max_suppression
 from tqdm import trange
-from wp8.utils.utils import listdir_nohidden_sorted
+from wp8.scripts.utils import listdir_nohidden_sorted
 
 
 class TemplateMatch:
@@ -85,7 +85,7 @@ class TemplateMatch:
 
         def show(frame, tomatch, templates):
             """Shows templates, frame and frame ROI from which to extract the digits."""
-            fig, ax = plt.subplots(nrows=1, ncols=len(templates), figsize=(20, 30))
+            _, ax = plt.subplots(nrows=1, ncols=len(templates), figsize=(20, 30))
             for count, col in enumerate(ax):  # type: ignore
                 col.imshow(self.templates[count], cmap="gray")
                 col.set_title(f"template {count}")

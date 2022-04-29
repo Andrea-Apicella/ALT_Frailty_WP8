@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from imutils.object_detection import non_max_suppression
 from tqdm import trange
-from wp8.scripts.utils import listdir_nohidden_sorted
+from wp8.pre_processing.utils import listdir_nohidden_sorted
 
 
 class TemplateMatch:
@@ -25,7 +25,8 @@ class TemplateMatch:
             cv2.imread(template)
             for template in listdir_nohidden_sorted(self.templates_path)
         ]
-        print(f"Found {len(self.templates)} templates in {self.templates_path}.")
+        print(
+            f"Found {len(self.templates)} templates in {self.templates_path}.")
 
         self.TARGET_TEMPLATE_SIZE = target_template_size
         self.TARGET_TIMESTAMP_SIZE = target_timestamp_size
@@ -79,13 +80,15 @@ class TemplateMatch:
                 if self.element_type == "timestamp"
                 else self.TARGET_DATALOGGER_SIZE
             )
-            frame = cv2.resize(frame, dsize=newsize, interpolation=cv2.INTER_CUBIC)
+            frame = cv2.resize(frame, dsize=newsize,
+                               interpolation=cv2.INTER_CUBIC)
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             return frame.astype(np.uint8)
 
         def show(frame, tomatch, templates):
             """Shows templates, frame and frame ROI from which to extract the digits."""
-            _, ax = plt.subplots(nrows=1, ncols=len(templates), figsize=(20, 30))
+            _, ax = plt.subplots(nrows=1, ncols=len(
+                templates), figsize=(20, 30))
             for count, col in enumerate(ax):  # type: ignore
                 col.imshow(self.templates[count], cmap="gray")
                 col.set_title(f"template {count}")
@@ -109,7 +112,7 @@ class TemplateMatch:
             if self.element_type == "timestamp"
             else self.datalogger_roi
         )
-        tomatch = frame[top_y : top_y + bottom_y, top_x : top_x + bottom_x]
+        tomatch = frame[top_y: top_y + bottom_y, top_x: top_x + bottom_x]
         tomatch = pre_process(tomatch)
 
         if test:
@@ -146,7 +149,8 @@ class TemplateMatch:
             if test:
                 for (startX, startY, endX, endY) in nms_boxes:
                     cv2.rectangle(
-                        tomatch_copy, (startX, startY), (endX, endY), (0, 0, 0), 3
+                        tomatch_copy, (startX, startY), (endX,
+                                                         endY), (0, 0, 0), 3
                     )
             if template_number == len(self.templates) - 1:
                 plt.figure()

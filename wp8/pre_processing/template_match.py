@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from imutils.object_detection import non_max_suppression
 from tqdm import trange
-from wp8.pre_processing.utils import listdir_nohidden_sorted
+
+from pre_processing.utils import listdir_nohidden_sorted
 
 
 class TemplateMatch:

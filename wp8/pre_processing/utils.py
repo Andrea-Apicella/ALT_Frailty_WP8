@@ -1,11 +1,16 @@
-import os
-from natsort import natsorted
 import glob
+import os
+
+from natsort import natsorted
 
 
 def listdir_nohidden_sorted(path) -> list:
     """Returns a list of the elements in the specified path, sorted by name. Skips dotfiles."""
-    return natsorted(glob.glob(os.path.join(path, '*')))
+    l = glob.glob(os.path.join(path, '*'))
+    if len(l) > 0:
+        return natsorted(l)
+    else:
+        raise Exception(f'List is empty. Invalid path {path}')
 
 
 def safe_mkdir(path) -> None:

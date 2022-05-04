@@ -2,7 +2,8 @@ import json
 
 import pandas as pd
 from tqdm import tqdm
-from wp8.pre_processing.utils import listdir_nohidden_sorted
+
+from pre_processing.utils import listdir_nohidden_sorted
 
 
 class LabelsGenerator:

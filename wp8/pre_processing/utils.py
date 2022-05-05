@@ -15,7 +15,5 @@ def listdir_nohidden_sorted(path) -> list:
 
 def safe_mkdir(path) -> None:
     """If does not already exists, makes a directory in the specified path."""
-    try:
-        os.mkdir(path)
-    except FileExistsError:
-        print('Folder already exists, skipping creation.')
+    if not os.path.exists(path):
+        os.makedirs(path)

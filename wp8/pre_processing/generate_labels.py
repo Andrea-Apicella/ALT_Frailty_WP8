@@ -132,7 +132,7 @@ class LabelsGenerator:
         sheet_name = self.labels_dict["videoName"].replace(".mp4", "").lower()
 
         with pd.ExcelWriter(
-            "/Users/andrea/Documents/Github/WP8_refactoring/wp8/excel_sheets/labels/labels.xlsx",
+            "/Users/andrea/Documents/Github/WP8_refactoring/wp8/outputs/labels/labels.xlsx",
             engine="openpyxl",
             mode="a",
             if_sheet_exists="replace",

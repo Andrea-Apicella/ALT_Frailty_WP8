@@ -46,7 +46,7 @@ class ProcessDataset:
             video_iso_files_path = f'{folder}/Video ISO Files'
 
             frames_names = []
-            features_list = []
+            features_list = np.array([])
 
             video_iso_files = listdir_nohidden_sorted(
                 video_iso_files_path)[:-1]
@@ -65,10 +65,10 @@ class ProcessDataset:
                             break
 
                         features = self.predict_frame(frame)
+                        np.append(features_list, features)
                         file_name = f'{cam[start:end].lower().replace(" ", "_")}_{str(f).zfill(4)}'
                         frames_names.append(file_name)
 
-                        features_list.append(features)
                 finally:
                     cap.release()
 

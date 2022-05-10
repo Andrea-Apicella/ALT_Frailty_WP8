@@ -26,7 +26,7 @@ class ProcessDataset:
 
         dfs = []
         all_features = []
-        for _, folder in enumerate((t0 := tqdm(self.videos_paths[0:1], position=0))):
+        for _, folder in enumerate((t0 := tqdm(self.videos_paths, position=0))):
             folder_name = folder.replace(self.videos_folder, "")[1:]
             t0.set_description(
                 f'Processing folder: {folder_name}')
@@ -56,7 +56,7 @@ class ProcessDataset:
             video_iso_files = listdir_nohidden_sorted(
                 video_iso_files_path)[:-1]
 
-            for _, cam in enumerate((t1 := tqdm(video_iso_files[0:2], position=1, leave=True))):
+            for _, cam in enumerate((t1 := tqdm(video_iso_files, position=1, leave=True))):
                 start = cam.rfind('/') + 1
                 end = len(cam) - 4
                 t1.set_description(
@@ -79,7 +79,7 @@ class ProcessDataset:
                     cap.release()
 
             df = pd.concat(
-                [labels_sheet] * len(video_iso_files[0:2]), ignore_index=True)  # type: ignore
+                [labels_sheet] * len(video_iso_files), ignore_index=True)  # type: ignore
 
             df["frame_name"] = pd.Series(frames_names)
 

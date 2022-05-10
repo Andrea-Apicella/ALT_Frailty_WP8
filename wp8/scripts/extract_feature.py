@@ -1,8 +1,7 @@
 import concurrent.futures
 
 import tensorflow as tf
-
-from pre_processing.process_dataset import ProcessDataset
+from wp8.pre_processing.process_dataset import ProcessDataset
 
 videos_folder = '/Volumes/HDD ESTERNO Andrea/DATASET WP8'
 # videos_folder = '/Volumes/SSD 1TB 1/Alt Frailty WP8/DATASET_WP8'

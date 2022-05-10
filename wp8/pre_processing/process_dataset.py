@@ -26,7 +26,7 @@ class ProcessDataset:
 
         safe_mkdir("outputs/dataset")
         dfs = []
-        for _, folder in enumerate((t0 := tqdm(self.videos_paths, position=0))):
+        for _, folder in enumerate((t0 := tqdm(self.videos_paths[0:2], position=0))):
             folder_name = folder.replace(self.videos_folder, "")[1:]
             t0.set_description(
                 f'Processing folder: {folder_name}')
@@ -46,12 +46,12 @@ class ProcessDataset:
             video_iso_files_path = f'{folder}/Video ISO Files'
 
             frames_names = []
-            features_list = np.array([])
+            features_list = []
 
             video_iso_files = listdir_nohidden_sorted(
                 video_iso_files_path)[:-1]
 
-            for _, cam in enumerate((t1 := tqdm(video_iso_files, position=1, leave=True))):
+            for _, cam in enumerate((t1 := tqdm(video_iso_files[0:2], position=1, leave=True))):
                 start = cam.rfind('/') + 1
                 end = len(cam) - 4
                 t1.set_description(
@@ -65,7 +65,7 @@ class ProcessDataset:
                             break
 
                         features = self.predict_frame(frame)
-                        np.append(features_list, features)
+                        features_list.append(features)
                         file_name = f'{cam[start:end].lower().replace(" ", "_")}_{str(f).zfill(4)}'
                         frames_names.append(file_name)
 
@@ -73,10 +73,11 @@ class ProcessDataset:
                     cap.release()
 
             df = pd.concat(
-                [labels_sheet] * len(video_iso_files), ignore_index=True)  # type: ignore
+                [labels_sheet] * len(video_iso_files[0:2]), ignore_index=True)  # type: ignore
 
             df["frame_name"] = pd.Series(frames_names)
-            df["features"] = pd.Series(np.array(features_list))
+            df["features"] = pd.Series(features_list)
+
             # if len(frames_names) != len(labels_sheet.index):
             #     print(
             #         f'frames_names length: {len(frames_names)}, labels_sheet length: {len(labels_sheet.index)}')
@@ -85,10 +86,10 @@ class ProcessDataset:
             # else:
             #     print(
             #         f'frames_names length: {len(frames_names)}, labels_sheet length: {len(labels_sheet.index)}')
-            df.to_pickle(f"outputs/dataset/{folder_name}.pkl")
+            df.to_json(f"outputs/dataset/{folder_name}.json")
             dfs.append(df)
         dataset = pd.concat(dfs)
-        dataset.to_pickle("outputs/dataset/full_dataset.pkl")
+        dataset.to_json("outputs/dataset/full_dataset.json")
 
         # try:
         #     with pd.ExcelWriter(

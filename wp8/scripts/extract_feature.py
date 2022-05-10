@@ -1,4 +1,3 @@
-import concurrent.futures
 
 import tensorflow as tf
 from wp8.pre_processing.process_dataset import ProcessDataset
@@ -12,6 +11,7 @@ feature_extractor = tf.keras.applications.InceptionV3(
     pooling="avg",
     input_shape=(224, 224, 3),
 )
+
 
 ds = ProcessDataset(videos_folder=videos_folder, feature_extractor=feature_extractor,
                     preprocess_input=tf.keras.applications.inception_v3.preprocess_input)

@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from tqdm import tqdm, trange
-from wp8.pre_processing.utils import listdir_nohidden_sorted, safe_mkdir
+from wp8.pre_processing.utils import listdir_nohidden_sorted
 
 
 class ProcessDataset:
@@ -24,9 +24,9 @@ class ProcessDataset:
 
     def extract_frames(self):
 
-        safe_mkdir("outputs/dataset")
         dfs = []
-        for _, folder in enumerate((t0 := tqdm(self.videos_paths[0:2], position=0))):
+        all_features = []
+        for _, folder in enumerate((t0 := tqdm(self.videos_paths[0:1], position=0))):
             folder_name = folder.replace(self.videos_folder, "")[1:]
             t0.set_description(
                 f'Processing folder: {folder_name}')
@@ -35,18 +35,23 @@ class ProcessDataset:
             try:
                 labels_sheet = pd.read_excel("outputs/labels/labels.xlsx",
                                              sheet_name=sheet_name, index_col=0)
-                not os.path.exists(f"outputs/dataset/{folder_name}.pkl")
+                os.path.exists(
+                    f"../outputs/dataset/dataset/{folder_name}.csv")
 
-            except Exception as e:
-                print(e)
+            except OSError:
                 print(
-                    f'Labels sheet {sheet_name} not found or folder already processed. Skippig {folder_name}.')
+                    f'Labels sheet {sheet_name} not found. Skippig {folder_name}.')
+                continue
+
+            if os.path.exists(f"outputs/dataset/dataset/{folder_name}.csv"):
+                print(
+                    f'Folder already processed. Skippig {folder_name}')
                 continue
 
             video_iso_files_path = f'{folder}/Video ISO Files'
 
             frames_names = []
-            features_list = []
+            folder_features = []
 
             video_iso_files = listdir_nohidden_sorted(
                 video_iso_files_path)[:-1]
@@ -65,7 +70,8 @@ class ProcessDataset:
                             break
 
                         features = self.predict_frame(frame)
-                        features_list.append(features)
+                        folder_features.append(features)
+
                         file_name = f'{cam[start:end].lower().replace(" ", "_")}_{str(f).zfill(4)}'
                         frames_names.append(file_name)
 
@@ -76,28 +82,24 @@ class ProcessDataset:
                 [labels_sheet] * len(video_iso_files[0:2]), ignore_index=True)  # type: ignore
 
             df["frame_name"] = pd.Series(frames_names)
-            df["features"] = pd.Series(features_list)
 
-            # if len(frames_names) != len(labels_sheet.index):
-            #     print(
-            #         f'frames_names length: {len(frames_names)}, labels_sheet length: {len(labels_sheet.index)}')
-            #     raise Exception(
-            #         "frame frames_names and labels don't have the same length")
-            # else:
-            #     print(
-            #         f'frames_names length: {len(frames_names)}, labels_sheet length: {len(labels_sheet.index)}')
-            df.to_json(f"outputs/dataset/{folder_name}.json")
+            # save features as npy files
+            folder_features = np.asarray(folder_features).squeeze()
+            np.save(
+                f"outputs/dataset/features/{folder_name}.npy", folder_features)
+
+            print(f"folder_features shape: {folder_features.shape}")
+
+            # save dataset as csv
+            df.to_csv(f"outputs/dataset/dataset/{folder_name}.csv")
+
+            all_features.append(folder_features)
             dfs.append(df)
-        dataset = pd.concat(dfs)
-        dataset.to_json("outputs/dataset/full_dataset.json")
 
-        # try:
-        #     with pd.ExcelWriter(
-        #             path="outputs/dataset/dataset.xlsx",
-        #             engine="openpyxl",
-        #             mode="a",
-        #             if_sheet_exists="replace") as writer:  # pylint: disable=abstract-class-instantiated
-        #         df.to_excel(
-        #             writer, sheet_name=f'{folder.replace(self.videos_folder, "").lower()[1:]}', index=True)
-        # except Exception as e:
-        #     print(e)
+        # save all features as npy
+        all_features = np.asarray(all_features).squeeze()
+        np.save("outputs/dataset/features/all_features.npy", all_features)
+
+        # save full dataset as csv
+        dataset = pd.concat(dfs)
+        dataset.to_csv("outputs/dataset/dataset/full_dataset.csv")

@@ -1,9 +1,10 @@
 import json
+import os
 
 import pandas as pd
+from openpyxl import Workbook
 from tqdm import tqdm
-
-from pre_processing.utils import listdir_nohidden_sorted
+from wp8.pre_processing.utils import listdir_nohidden_sorted
 
 
 class LabelsGenerator:
@@ -141,19 +142,22 @@ class LabelsGenerator:
 
     def generate_labels(self):
         """Generate labels excel file from multiple JSON files in the specified folder"""
+        filename = "../outputs/labels/labels.xlsx"
+        if not os.path.isfile(filename):
+            wb = Workbook()
+            wb.save(filename=filename)
+
         for _, file in enumerate(tqdm(self.json_files_paths)):
             self.gen_labels_single_file(file)
 
-    # def generate_macro_labels(self):
+# def test():
+#     lg = LabelsGenerator(json_dir="wp8/data/labels_json/")
+#     lg.gen_labels_single_file(
+#         file="wp8/data/labels_json/WP8_labeling_Actor_1_Bed_Full_PH.mp4.json"
+#     )
+#     # lg.generate_macro_labels()
 
 
-def test():
-    lg = LabelsGenerator(json_dir="wp8/data/labels_json/")
-    lg.gen_labels_single_file(
-        file="wp8/data/labels_json/WP8_labeling_Actor_1_Bed_Full_PH.mp4.json"
-    )
-    # lg.generate_macro_labels()
-
-
-if __name__ == "__main__":
-    test()
+# if __name__ == "__main__":
+#     # test()
+#     pass

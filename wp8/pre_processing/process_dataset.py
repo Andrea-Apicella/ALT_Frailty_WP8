@@ -83,23 +83,24 @@ class ProcessDataset:
 
             df["frame_name"] = pd.Series(frames_names)
 
-            # save features as npy files
+            # savez_compressed features as npy files
             folder_features = np.asarray(folder_features).squeeze()
-            np.save(
+            np.savez_compressed(
                 f"outputs/dataset/features/{folder_name}.npy", folder_features)
 
             print(f"folder_features shape: {folder_features.shape}")
 
-            # save dataset as csv
+            # savez_compressed dataset as csv
             df.to_csv(f"outputs/dataset/dataset/{folder_name}.csv")
 
             all_features.append(folder_features)
             dfs.append(df)
 
-        # save all features as npy
+        # savez_compressed all features as npy
         all_features = np.asarray(all_features).squeeze()
-        np.save("outputs/dataset/features/all_features.npy", all_features)
+        np.savez_compressed(
+            "outputs/dataset/features/all_features.npy", all_features)
 
-        # save full dataset as csv
+        # savez_compressed full dataset as csv
         dataset = pd.concat(dfs)
         dataset.to_csv("outputs/dataset/dataset/full_dataset.csv")

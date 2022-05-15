@@ -20,9 +20,8 @@ class TimeSeriesGenerator(Sequence):
         self.n_windows = (self.batch_size - self.seq_len) // self.stride + 1
         self.n_series_labels = self.n_windows * \
             (len(self.y) // self.batch_size)
-
+        self.n_batches = len(self.y) // self.batch_size
         self.series_labels = []
-
         self.ys_count = 0
         self.get_item_calls = 0
 
@@ -32,8 +31,8 @@ class TimeSeriesGenerator(Sequence):
     def __get_data(self, batch):
         # generate one time series of seq_len padded if its too short
         # check that the time series is from the one cam only (does not overflow on another camera)
-        X = batch["features"]
-        y = batch["labels"]
+        X = batch["features"].copy()
+        y = batch["labels"].copy()
         cams = batch["cams"]
 
         time_series = [np.empty(self.num_features)] * self.n_windows
@@ -41,25 +40,21 @@ class TimeSeriesGenerator(Sequence):
         # s = 0
         for w in range(self.n_windows):
             s = w * self.stride
-            # while s + self.seq_len <= (X.shape[0]):
             features_seq = X[s:s + self.seq_len]
             labels_seq = y[s:s + self.seq_len]
-            # print(f"len(labels_seq): {len(labels_seq)}")
             cams_seq = cams[s:s + self.seq_len]
             curr_cam = mode(cams_seq)
             for i, _ in enumerate(cams_seq):
                 if cams_seq[i] != curr_cam:
                     features_seq[i] = np.zeros(self.num_features)  # padding
-                    labels_seq[i] = -1  # padding
+                    labels_seq[i] = -10  # padding
             time_series[w] = features_seq
 
             # convert time-step labels in one label per time-series
-            labels_seq = filter(lambda l: l != -1, labels_seq)
+            labels_seq = [l for l in labels_seq if l is not -10]
             label = int(mode(labels_seq))  # label with most occurrence
-            # print(f"label after mode: {label}")
             y_s[w] = label
-            # s += self.stride
-        # print(f"len(y_s): {len(y_s)}")
+
         if not self.evaluate:
             self.series_labels.extend(y_s)
             self.ys_count += len(y_s)

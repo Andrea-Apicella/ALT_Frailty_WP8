@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from sklearn import preprocessing
+
 # from sklearn.metrics import classification_report
 # from sklearn.model_selection import train_test_split
 from tensorflow.keras.callbacks import ModelCheckpoint
@@ -16,6 +17,7 @@ from tensorflow.keras.metrics import Accuracy, SparseCategoricalAccuracy
 from tensorflow.keras.models import Sequential
 from tqdm.notebook import tqdm
 from wandb.keras import WandbCallback
+from wp8.options.train_options import TrainOptions
 from wp8.pre_processing.generators import TimeSeriesGenerator as TSG
 from wp8.pre_processing.utils import listdir_nohidden_sorted as lsdir
 from wp8.pre_processing.utils import safe_mkdir
@@ -26,10 +28,34 @@ import wandb
 np.random.seed(2)
 tf.random.set_seed(2)
 
+opt = TrainOptions().parse()
 
 # wandb.login()
 # %env WANDB_API_KEY=$a22c5c63cb14ecd62db2141ec9ca69d588a6483e
 
+# WANDB project initialization
+run = wandb.init(
+    project="Fall detection CNN + RNN",
+    config={
+        "model": "LSTM",
+        "epochs": opt.epochs,
+        "sequence_length": opt.seq_len,
+        "num_features": 2048,
+        "batch_size": opt.batch_size,
+        "sliding_window_stride": opt.stride,
+        "loss_function": "sparse_categorical_crossentropy",
+        "architecture": "LSTM",
+        "dataset": "Actor_1_Bed",
+        "dropout": 0.8,
+        "lstm1_units": opt.lstm_units,
+        "learning_rate": opt.learning_rate,
+        "split_ratio": opt.split_ratio,
+        "folders_start": 0,
+        "folders_end": 1,
+    },
+)
+
+cfg = wandb.config
 
 # Load dataset and features
 features_path = "../outputs/dataset/features/"
@@ -37,7 +63,7 @@ dataset_path = "../outputs/dataset/dataset/"
 
 # load features
 all_features = []
-all_features_paths = lsdir(features_path)[0:1]
+all_features_paths = lsdir(features_path)[cfg.folders_start : cfg.folders_end]
 for _, feature_file in enumerate(tqdm(all_features_paths)):
     with np.load(feature_file) as features:
         all_features.append(features["arr_0"])
@@ -46,15 +72,14 @@ all_features = np.concatenate(all_features, axis=0)
 
 
 dfs = []
-for _, filename in enumerate(tqdm(lsdir(dataset_path)[0:1])):
+all_datasets = lsdir(dataset_path)[cfg.folders_start : cfg.folders_end]
+for _, filename in enumerate(tqdm(all_datasets)):
     df = pd.read_csv(filename, index_col=0)
     dfs.append(df)
 
 dataset = pd.concat(dfs, ignore_index=True)
 
-print(f"dataset shape: {dataset.shape}, all_features shape: {all_features.shape}")
-
-dataset.head(-10)
+print(f"\ndataset shape: {dataset.shape}, all_features shape: {all_features.shape}\n")
 
 names = dataset["frame_name"]
 cams = []
@@ -63,7 +88,7 @@ for name in names:
 
 dataset["cams"] = pd.Series(cams)
 
-dataset.head()
+print(f"\n{dataset.head()}\n")
 
 
 # insert features in the dataframe
@@ -78,31 +103,8 @@ encoded_labels = le.fit_transform(dataset["micro_labels"])
 n_labels = len(np.unique(encoded_labels))
 
 
-# WANDB project initialization
-run = wandb.init(
-    project="Fall detection CNN + RNN",
-    config={
-        "model": "LSTM",
-        "epochs": 5,
-        "sequence_length": 20,
-        "num_features": 2048,
-        "batch_size": 40,
-        "sliding_window_stride": 10,
-        "loss_function": "sparse_categorical_crossentropy",
-        "architecture": "LSTM",
-        "dataset": "Actor_1_Bed",
-        "dropout": 0.8,
-        "lstm1_units": 32,
-        "learning_rate": 0.01,
-        "split_ratio": 0.7,
-    },
-)
-
-config = wandb.config
-
-
 # Train Test split
-split = int(dataset.shape[0] * config.split_ratio)
+split = int(dataset.shape[0] * cfg.split_ratio)
 X_train = np.array(dataset["features"][0:split].tolist())
 X_test = np.array(dataset["features"][split:].tolist())
 
@@ -112,51 +114,51 @@ y_test = encoded_labels[split:]
 cams_train = dataset["cams"][0:split]
 cams_test = dataset["cams"][split:]
 
-print(f"X_train shape :{X_train.shape}, y_train shape: {y_train.shape}, X_test shape: {X_test.shape}, y_test shape: {y_test.shape}")
+print(f"\nX_train shape :{X_train.shape}, y_train shape: {y_train.shape}, X_test shape: {X_test.shape}, y_test shape: {y_test.shape}\n")
 
 
-print(f'Last train frame: {dataset["frame_name"][split]}\nFirst test frame: {dataset["frame_name"][split+1]}')
+print(f'\nLast train frame: {dataset["frame_name"][split]}\nFirst test frame: {dataset["frame_name"][split+1]}\n')
 
 
 # Create Model
 train_gen = TSG(
     X=X_train,
     y=y_train,
-    num_features=config.num_features,
+    num_features=cfg.num_features,
     cams=cams_train.tolist(),
-    batch_size=config.batch_size,
-    stride=config.sliding_window_stride,
-    seq_len=config.sequence_length,
+    batch_size=cfg.batch_size,
+    stride=cfg.sliding_window_stride,
+    seq_len=cfg.sequence_length,
 )
 test_gen = TSG(
     X=X_test,
     y=y_test,
     cams=cams_test.tolist(),
-    num_features=config.num_features,
-    batch_size=config.batch_size,
-    stride=config.sliding_window_stride,
-    seq_len=config.sequence_length,
+    num_features=cfg.num_features,
+    batch_size=cfg.batch_size,
+    stride=cfg.sliding_window_stride,
+    seq_len=cfg.sequence_length,
 )
 
 model = Sequential()
-model.add(LSTM(units=config.lstm1_units, input_shape=(20, config.num_features)))
-model.add(Dropout(config.dropout))
+model.add(LSTM(units=cfg.lstm1_units, input_shape=(20, cfg.num_features)))
+model.add(Dropout(cfg.dropout))
 model.add(Dense(n_labels, activation="softmax"))
 model.compile(
-    optimizer=tf.keras.optimizers.Adam(learning_rate=config.learning_rate),
-    loss=config.loss_function,
+    optimizer=tf.keras.optimizers.Adam(learning_rate=cfg.learning_rate),
+    loss=cfg.loss_function,
     metrics=["accuracy", "sparse_categorical_accuracy"],
 )
 model.summary()
 
 
 # Callbacks
-dir_path = f"experiments/model_checkpoint/{config.model}_{config.dataset}"
+dir_path = f"experiments/model_checkpoint/{cfg.model}_{cfg.dataset}"
 safe_mkdir(dir_path)
 now = datetime.now()
 dt_string = now.strftime("%d/%m/%Y_%H:%M:%S")
 model_checkpoint = ModelCheckpoint(
-    filepath=f"{dir_path}/{config.model}_{dt_string}",
+    filepath=f"{dir_path}/{cfg.model}_{dt_string}",
     monitor="val_accuracy",
     save_best_only=True,
     save_weights_only=True,
@@ -165,16 +167,12 @@ callbacks = [WandbCallback(), model_checkpoint]
 
 
 # Train Model
-history = model.fit(train_gen, validation_data=test_gen, epochs=config.epochs, callbacks=callbacks)
+history = model.fit(train_gen, validation_data=test_gen, epochs=cfg.epochs, callbacks=callbacks)
 test_gen.evaluate = True
 
 
 # Evaluate Model
-test_logits = model.predict_generator(test_gen, verbose=1)
-
-print(
-    f"test_gen.n_windows: {test_gen.n_windows}\n\ntest_gen series_labels length: {len(test_gen.series_labels)}\n\nCorrect number of labels: {test_gen.n_windows * (y_test.shape[0] // test_gen.batch_size)}\n\nlogits shape: {test_logits.shape}"
-)
+test_logits = model.predict(test_gen, verbose=1)
 
 
 def to_series_labels(timestep_labels: list, n_batches: int, n_windows: int, seq_len: int, stride: int) -> list:

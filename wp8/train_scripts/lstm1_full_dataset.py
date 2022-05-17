@@ -9,6 +9,8 @@ import pandas as pd
 import tensorflow as tf
 import wandb
 from sklearn import preprocessing
+from sklearn.utils.class_weight import compute_class_weight
+
 # from sklearn.metrics import classification_report
 # from sklearn.model_selection import train_test_split
 from tensorflow.keras.callbacks import ModelCheckpoint
@@ -25,6 +27,16 @@ from wp8.pre_processing.utils import safe_mkdir
 # Set random seeds
 np.random.seed(2)
 tf.random.set_seed(2)
+
+
+def to_series_labels(timestep_labels: list, n_batches: int, n_windows: int, seq_len: int, stride: int) -> list:
+    series_labels = []
+    for w in range(n_windows * n_batches):
+        s = w * stride
+        labels_seq = timestep_labels[s : s + seq_len]
+        series_labels.append(mode(labels_seq))
+    return series_labels
+
 
 opt = TrainOptions().parse()
 
@@ -67,7 +79,7 @@ for _, feature_file in enumerate(tqdm(all_features_paths)):
 
 all_features = np.concatenate(all_features, axis=0)
 all_features = preprocessing.normalize(all_features, axis=1, norm="l1")
-print(f'Normalized features shape: {all_features.shape}')
+print(f"Normalized features shape: {all_features.shape}")
 print("[STATUS] Loaded Features")
 
 
@@ -99,7 +111,8 @@ micro_labels_names = dataset["micro_labels"].unique().tolist()
 
 le = preprocessing.LabelEncoder()
 encoded_labels = le.fit_transform(dataset["micro_labels"])
-n_labels = len(np.unique(encoded_labels))
+encoded_labels_unique = np.unique(encoded_labels)
+n_labels = len(encoded_labels_unique)
 
 
 # Train Test split
@@ -165,23 +178,16 @@ model_checkpoint = ModelCheckpoint(
 )
 callbacks = [WandbCallback(), model_checkpoint]
 
+y_test_series = to_series_labels(y_test, test_gen.n_batches, test_gen.n_windows, test_gen.seq_len, test_gen.stride)
+class_weight = compute_class_weight("balanced", encoded_labels_unique, encoded_labels)  # type: ignore
 
 # Train Model
-history = model.fit(train_gen, validation_data=test_gen, epochs=cfg.epochs, callbacks=callbacks)
+history = model.fit(train_gen, validation_data=test_gen, epochs=cfg.epochs, callbacks=callbacks, class_weight=class_weight)
 test_gen.evaluate = True
 
 
 # Evaluate Model
 test_logits = model.predict(test_gen, verbose=1)
-
-
-def to_series_labels(timestep_labels: list, n_batches: int, n_windows: int, seq_len: int, stride: int) -> list:
-    series_labels = []
-    for w in range(n_windows * n_batches):
-        s = w * stride
-        labels_seq = timestep_labels[s : s + seq_len]
-        series_labels.append(mode(labels_seq))
-    return series_labels
 
 
 # Log metrics to wandb

@@ -44,8 +44,8 @@ run = wandb.init(
         "sliding_window_stride": opt.stride,
         "loss_function": "sparse_categorical_crossentropy",
         "architecture": "LSTM",
-        "dataset": "Actor_1_Bed",
-        "dropout": 0.8,
+        "dataset": "50/89",
+        "dropout": opt.dropout,
         "lstm1_units": opt.lstm_units,
         "learning_rate": opt.learning_rate,
         "split_ratio": opt.split_ratio,
@@ -138,7 +138,8 @@ test_gen = TSG(
 )
 
 model = Sequential()
-model.add(LSTM(units=cfg.lstm1_units, input_shape=(20, cfg.num_features)))
+model.add(LSTM(units=cfg.lstm1_units, input_shape=(20, cfg.num_features)), return_sequences=True)
+model.add(LSTM(units=cfg.lstm2_units, input_shape=(20, cfg.num_features)))
 model.add(Dropout(cfg.dropout))
 model.add(Dense(n_labels, activation="softmax"))
 model.compile(

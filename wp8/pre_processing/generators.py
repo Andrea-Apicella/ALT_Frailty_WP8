@@ -66,9 +66,7 @@ class TimeSeriesGenerator(Sequence):
         # batch_id += 1
 
         batch = {"features": self.X[a:b, :], "labels": self.y[a:b], "cams": self.cams[a:b]}
-        print(f'batch["features"].shape: {batch["features"].shape}')
         X, y = self.__get_data(batch)
-        print(f'X.shape: {X.shape}')
         return X, y
 
     def __on_epoch_end(self):

@@ -17,7 +17,7 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.layers import LSTM, Dense, Dropout
 from tensorflow.keras.metrics import Accuracy, SparseCategoricalAccuracy
 from tensorflow.keras.models import Sequential
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 from wandb.keras import WandbCallback
 from wp8.options.train_options import TrainOptions
 from wp8.pre_processing.generators import TimeSeriesGenerator as TSG
@@ -72,7 +72,7 @@ dataset_path = "../outputs/dataset/dataset/"
 
 # load features
 all_features = []
-all_features_paths = lsdir(features_path)
+all_features_paths = lsdir(features_path)[0:26]
 for _, feature_file in enumerate(tqdm(all_features_paths)):
     with np.load(feature_file) as features:
         all_features.append(features["arr_0"])
@@ -84,7 +84,7 @@ print("[STATUS] Loaded Features")
 
 
 dfs = []
-all_datasets = lsdir(dataset_path)
+all_datasets = lsdir(dataset_path)[0:26]
 for _, filename in enumerate(tqdm(all_datasets)):
     df = pd.read_csv(filename, index_col=0)
     dfs.append(df)

@@ -5,7 +5,7 @@ from tensorflow.keras.utils import Sequence
 
 
 class TimeSeriesGenerator(Sequence):
-    def __init__(self, X, y: list, num_features: int, cams: list, seq_len: int, stride: int, batch_size: int, evaluate=False):
+    def __init__(self, X: np.ndarray, y: list, num_features: int, cams: list, seq_len: int, stride: int, batch_size: int, evaluate=False):
         self.X = X
         self.y = y
         self.num_features = num_features
@@ -18,8 +18,7 @@ class TimeSeriesGenerator(Sequence):
         self.len = len(self.X)
         self.evaluate = evaluate
         self.n_windows = (self.batch_size - self.seq_len) // self.stride + 1
-        self.n_series_labels = self.n_windows * \
-            (len(self.y) // self.batch_size)
+        self.n_series_labels = self.n_windows * (len(self.y) // self.batch_size)
         self.n_batches = len(self.y) // self.batch_size
         self.series_labels = []
         self.ys_count = 0
@@ -31,8 +30,8 @@ class TimeSeriesGenerator(Sequence):
     def __get_data(self, batch):
         # generate one time series of seq_len padded if its too short
         # check that the time series is from the one cam only (does not overflow on another camera)
-        X = batch["features"].copy()
-        y = batch["labels"].copy()
+        X = batch["features"]
+        y = batch["labels"]
         cams = batch["cams"]
 
         time_series = [np.empty(self.num_features)] * self.n_windows
@@ -40,9 +39,9 @@ class TimeSeriesGenerator(Sequence):
         # s = 0
         for w in range(self.n_windows):
             s = w * self.stride
-            features_seq = X[s:s + self.seq_len]
-            labels_seq = y[s:s + self.seq_len]
-            cams_seq = cams[s:s + self.seq_len]
+            features_seq = X[s : s + self.seq_len, :]
+            labels_seq = y[s : s + self.seq_len]
+            cams_seq = cams[s : s + self.seq_len]
             curr_cam = mode(cams_seq)
             for i, _ in enumerate(cams_seq):
                 if cams_seq[i] != curr_cam:
@@ -66,9 +65,10 @@ class TimeSeriesGenerator(Sequence):
         b = (index + 1) * self.batch_size
         # batch_id += 1
 
-        batch = {"features": self.X[a:b],
-                 "labels": self.y[a:b], "cams": self.cams[a:b]}
+        batch = {"features": self.X[a:b, :], "labels": self.y[a:b], "cams": self.cams[a:b]}
+        print(f'batch["features"].shape: {batch["features"].shape}')
         X, y = self.__get_data(batch)
+        print(f'X.shape: {X.shape}')
         return X, y
 
     def __on_epoch_end(self):

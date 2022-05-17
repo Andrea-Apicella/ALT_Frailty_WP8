@@ -60,21 +60,23 @@ dataset_path = "../outputs/dataset/dataset/"
 
 # load features
 all_features = []
-all_features_paths = lsdir(features_path)
+all_features_paths = lsdir(features_path)[0:1]
 for _, feature_file in enumerate(tqdm(all_features_paths)):
     with np.load(feature_file) as features:
         all_features.append(features["arr_0"])
 
 all_features = np.concatenate(all_features, axis=0)
+print("[STATUS] Loaded Features")
 
 
 dfs = []
-all_datasets = lsdir(dataset_path)
+all_datasets = lsdir(dataset_path)[0:1]
 for _, filename in enumerate(tqdm(all_datasets)):
     df = pd.read_csv(filename, index_col=0)
     dfs.append(df)
 
 dataset = pd.concat(dfs, ignore_index=True)
+print("[STATUS] Loaded Dataset")
 
 print(f"\ndataset shape: {dataset.shape}, all_features shape: {all_features.shape}\n")
 
@@ -90,7 +92,7 @@ print(f"\n{dataset.head()}\n")
 
 
 # insert features in the dataframe
-dataset["features"] = pd.Series(all_features.tolist())
+print("[STATUS] Inserted Features into the Dataset")
 
 # count samples per label, get labels names, encode labels to integers
 dataset["micro_labels"].value_counts()
@@ -103,8 +105,8 @@ n_labels = len(np.unique(encoded_labels))
 
 # Train Test split
 split = int(dataset.shape[0] * cfg.split_ratio)
-X_train = np.array(dataset["features"][0:split].tolist())
-X_test = np.array(dataset["features"][split:].tolist())
+X_train = np.array(all_features[0:split, :])
+X_test = np.array(all_features[split:, :])
 
 y_train = encoded_labels[0:split]
 y_test = encoded_labels[split:]

@@ -1,6 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/andrea/Documents/Github/WP8_refactoring/wp8/train_scripts/lstm1_full_dataset.py", line 63, in <module>
-    all_features_paths = lsdir(features_path)[0:1]
-  File "/Users/andrea/Documents/Github/WP8_refactoring/wp8/pre_processing/utils.py", line 13, in listdir_nohidden_sorted
-    raise Exception(f'List is empty. Invalid path {path}')
-Exception: List is empty. Invalid path ../outputs/dataset/features/

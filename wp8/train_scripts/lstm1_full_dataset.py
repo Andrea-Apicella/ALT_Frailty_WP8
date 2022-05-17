@@ -7,7 +7,6 @@ from statistics import mode
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-import wandb
 from sklearn import preprocessing
 
 # from sklearn.metrics import classification_report
@@ -22,6 +21,8 @@ from wp8.options.train_options import TrainOptions
 from wp8.pre_processing.generators import TimeSeriesGenerator as TSG
 from wp8.pre_processing.utils import listdir_nohidden_sorted as lsdir
 from wp8.pre_processing.utils import safe_mkdir
+
+import wandb
 
 # Set random seeds
 np.random.seed(2)
@@ -61,7 +62,7 @@ dataset_path = "../outputs/dataset/dataset/"
 
 # load features
 all_features = []
-all_features_paths = lsdir(features_path)[0:3]
+all_features_paths = lsdir(features_path)
 for _, feature_file in enumerate(tqdm(all_features_paths)):
     with np.load(feature_file) as features:
         all_features.append(features["arr_0"])
@@ -71,7 +72,7 @@ print("[STATUS] Loaded Features")
 
 
 dfs = []
-all_datasets = lsdir(dataset_path)[0:3]
+all_datasets = lsdir(dataset_path)
 for _, filename in enumerate(tqdm(all_datasets)):
     df = pd.read_csv(filename, index_col=0)
     dfs.append(df)

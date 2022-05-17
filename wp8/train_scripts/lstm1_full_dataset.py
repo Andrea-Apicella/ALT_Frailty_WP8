@@ -180,6 +180,7 @@ callbacks = [WandbCallback(), model_checkpoint]
 
 y_test_series = to_series_labels(y_test, test_gen.n_batches, test_gen.n_windows, test_gen.seq_len, test_gen.stride)
 class_weight = compute_class_weight(class_weight="balanced", classes=encoded_labels_unique, y=encoded_labels)  # type: ignore
+class_weight = dict(zip(encoded_labels_unique, class_weight))
 print(f"Class weigth: {class_weight}")
 
 # Train Model

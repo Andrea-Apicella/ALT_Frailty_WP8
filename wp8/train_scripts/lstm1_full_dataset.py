@@ -66,6 +66,8 @@ for _, feature_file in enumerate(tqdm(all_features_paths)):
         all_features.append(features["arr_0"])
 
 all_features = np.concatenate(all_features, axis=0)
+all_features = preprocessing.normalize(all_features, axis=1, norm="l1")
+print(f'Normalized features shape: {all_features.shape}')
 print("[STATUS] Loaded Features")
 
 

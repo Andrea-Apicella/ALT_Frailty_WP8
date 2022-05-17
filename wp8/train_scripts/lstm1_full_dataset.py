@@ -81,7 +81,8 @@ print(f"\ndataset shape: {dataset.shape}, all_features shape: {all_features.shap
 names = dataset["frame_name"]
 cams = []
 for name in names:
-    cams.append(int(name[-6]))
+    index = name.find("cam") + 4
+    cams.append(int(name[index]))
 
 dataset["cams"] = pd.Series(cams)
 

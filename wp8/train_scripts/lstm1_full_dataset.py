@@ -60,7 +60,7 @@ dataset_path = "../outputs/dataset/dataset/"
 
 # load features
 all_features = []
-all_features_paths = lsdir(features_path)[0:1]
+all_features_paths = lsdir(features_path)
 for _, feature_file in enumerate(tqdm(all_features_paths)):
     with np.load(feature_file) as features:
         all_features.append(features["arr_0"])
@@ -70,7 +70,7 @@ print("[STATUS] Loaded Features")
 
 
 dfs = []
-all_datasets = lsdir(dataset_path)[0:1]
+all_datasets = lsdir(dataset_path)
 for _, filename in enumerate(tqdm(all_datasets)):
     df = pd.read_csv(filename, index_col=0)
     dfs.append(df)

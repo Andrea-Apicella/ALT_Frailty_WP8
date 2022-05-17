@@ -1,7 +1,5 @@
 name: ml
 channels:
-  - pytorch
-  - apple
   - anaconda
   - conda-forge
 dependencies:
@@ -118,8 +116,6 @@ dependencies:
   - libedit=3.1.20191231
   - libev=4.33
   - libffi=3.4.2
-  - libgfortran=5.0.0.dev0
-  - libgfortran5=11.0.1.dev0
   - libglib=2.70.2
   - libiconv=1.16
   - liblapack=3.9.0
@@ -200,7 +196,6 @@ dependencies:
   - python-dateutil=2.8.2
   - python-fastjsonschema=2.15.3
   - python_abi=3.9
-  - pytorch=1.11.0
   - pytz=2022.1
   - pyu2f=0.1.5
   - pyzmq=22.3.0
@@ -217,16 +212,12 @@ dependencies:
   - soupsieve=2.3.1
   - sqlite=3.38.5
   - stack_data=0.2.0
-  - tensorboard=2.9.0
-  - tensorboard-plugin-wit=1.8.1
-  - tensorflow-deps=2.8.0
   - terminado=0.13.3
   - testpath=0.6.0
   - threadpoolctl=3.1.0
   - tk=8.6.12
   - toml=0.10.2
   - tomli=2.0.1
-  - torchvision=0.2.2
   - tornado=6.1
   - tqdm=4.63.0
   - traitlets=5.2.0
@@ -274,9 +265,6 @@ dependencies:
     - shortuuid==1.0.9
     - six==1.15.0
     - smmap==5.0.0
-    - tensorboard-data-server==0.6.1
-    - tensorflow-macos==2.8.0
-    - tensorflow-metal==0.4.0
     - termcolor==1.1.0
     - tf-estimator-nightly==2.8.0.dev2021122109
     - wandb==0.12.16

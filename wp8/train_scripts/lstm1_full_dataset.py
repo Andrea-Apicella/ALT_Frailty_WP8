@@ -7,8 +7,8 @@ from statistics import mode
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+import wandb
 from sklearn import preprocessing
-
 # from sklearn.metrics import classification_report
 # from sklearn.model_selection import train_test_split
 from tensorflow.keras.callbacks import ModelCheckpoint
@@ -21,8 +21,6 @@ from wp8.options.train_options import TrainOptions
 from wp8.pre_processing.generators import TimeSeriesGenerator as TSG
 from wp8.pre_processing.utils import listdir_nohidden_sorted as lsdir
 from wp8.pre_processing.utils import safe_mkdir
-
-import wandb
 
 # Set random seeds
 np.random.seed(2)
@@ -45,7 +43,7 @@ run = wandb.init(
         "sliding_window_stride": opt.stride,
         "loss_function": "sparse_categorical_crossentropy",
         "architecture": "LSTM",
-        "dataset": "50/89",
+        "dataset": "50 out of 89",
         "dropout": opt.dropout,
         "lstm1_units": opt.lstm1_units,
         "lstm2_units": opt.lstm2_units,

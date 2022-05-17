@@ -91,9 +91,6 @@ dataset["cams"] = pd.Series(cams)
 print(f"\n{dataset.head()}\n")
 
 
-# insert features in the dataframe
-print("[STATUS] Inserted Features into the Dataset")
-
 # count samples per label, get labels names, encode labels to integers
 dataset["micro_labels"].value_counts()
 micro_labels_names = dataset["micro_labels"].unique().tolist()

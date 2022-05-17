@@ -154,6 +154,7 @@ test_gen = TSG(
 
 model = Sequential()
 model.add(LSTM(units=cfg.lstm1_units, input_shape=(20, cfg.num_features), return_sequences=True))
+model.add(Dropout(cfg.dropout))
 model.add(LSTM(units=cfg.lstm2_units, input_shape=(20, cfg.num_features)))
 model.add(Dropout(cfg.dropout))
 model.add(Dense(n_labels, activation="softmax"))

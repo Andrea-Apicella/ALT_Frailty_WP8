@@ -28,6 +28,10 @@ from wp8.pre_processing.utils import safe_mkdir
 np.random.seed(2)
 tf.random.set_seed(2)
 
+import os
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
 
 def to_series_labels(timestep_labels: list, n_batches: int, n_windows: int, seq_len: int, stride: int) -> list:
     series_labels = []

@@ -10,19 +10,16 @@ import tensorflow as tf
 import wandb
 from sklearn import preprocessing
 from sklearn.utils.class_weight import compute_class_weight
-
 # from sklearn.metrics import classification_report
 # from sklearn.model_selection import train_test_split
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.layers import LSTM, Dense, Dropout
-from tensorflow.keras.metrics import Accuracy, SparseCategoricalAccuracy
 from tensorflow.keras.models import Sequential
-from tqdm import tqdm
 from wandb.keras import WandbCallback
 from wp8.options.train_options import TrainOptions
 from wp8.pre_processing.generators import TimeSeriesGenerator as TSG
-from wp8.pre_processing.utils import listdir_nohidden_sorted as lsdir
 from wp8.pre_processing.utils import safe_mkdir
+from wp8.utils.load_dataset import DatasetLoader
 
 # Set random seeds
 np.random.seed(2)
@@ -37,12 +34,16 @@ def to_series_labels(timestep_labels: list, n_batches: int, n_windows: int, seq_
     series_labels = []
     for w in range(n_windows * n_batches):
         s = w * stride
-        labels_seq = timestep_labels[s : s + seq_len]
+        labels_seq = timestep_labels[s: s + seq_len]
         series_labels.append(mode(labels_seq))
     return series_labels
 
 
 opt = TrainOptions().parse()
+
+# check that actors and cams passed to the parsers are not in common between train and val sets
+if set(opt.train_actors) & set(opt.val_actors) or set(opt.train_cams) & set(opt.val_cams):
+    raise Exception("Can't use the same actors or cams both in train and validation splits")
 
 # wandb.login()
 # %env WANDB_API_KEY=$a22c5c63cb14ecd62db2141ec9ca69d588a6483e
@@ -59,7 +60,10 @@ run = wandb.init(
         "sliding_window_stride": opt.stride,
         "loss_function": "sparse_categorical_crossentropy",
         "architecture": "LSTM",
-        "dataset": "actually 5o out of 89",
+        "train_actors": opt.train_actors,
+        "val_actors": opt.val_actors,
+        "train_cams": opt.train_cams,
+        "val_cams": opt.val_cams,
         "dropout": opt.dropout,
         "lstm1_units": opt.lstm1_units,
         "lstm2_units": opt.lstm2_units,
@@ -70,44 +74,37 @@ run = wandb.init(
 
 cfg = wandb.config
 
+# count samples per label, get labels names, encode labels to integers
+dataset["micro_labels"].value_counts()
+micro_label_names = pd.read_csv("wp8/data/micro_classes.csv").tolist()
+# micro_labels_names = dataset["micro_labels"].unique().tolist()
+
+le = preprocessing.LabelEncoder()
+encoded_labels = le.fit_transform(dataset["micro_labels"])
+encoded_labels_unique = np.unique(encoded_labels)
+n_labels = len(encoded_labels_unique)
+
+
+def train_test_split(opt.
+
+
+    train_actos, opt.val_actors, opt.train_cams, opt.val_cams):
 # Load dataset and features
-features_path = "../outputs/dataset/features/"
-dataset_path = "../outputs/dataset/dataset/"
+features_folder = "../outputs/dataset/features/"
+dataset_folder = "../outputs/dataset/dataset/"
+if opt.val_actors != []:
+    train_dataloader = DatasetLoader(dataset_folder, features_folder, opt.train_actors, opt.train_cams)
+    val_dataloader = DatasetLoader(dataset_folder, features_folder, opt.val_actors, opt.val_cams)
+    train_dataset, train_features = train_dataloader.load()
+    val_dataset, val_features = train_dataloader.load()
 
-# load features
-all_features = []
-all_features_paths = lsdir(features_path)
-for _, feature_file in enumerate(tqdm(all_features_paths)):
-    with np.load(feature_file) as features:
-        all_features.append(features["arr_0"])
-
-all_features = np.concatenate(all_features, axis=0)
-all_features = preprocessing.normalize(all_features, axis=1, norm="l1")
-print(f"Normalized features shape: {all_features.shape}")
-print("[STATUS] Loaded Features")
-
-
-dfs = []
-all_datasets = lsdir(dataset_path)
-for _, filename in enumerate(tqdm(all_datasets)):
-    df = pd.read_csv(filename, index_col=0)
-    dfs.append(df)
-
-dataset = pd.concat(dfs, ignore_index=True)
-print("[STATUS] Loaded Dataset")
-
-print(f"\ndataset shape: {dataset.shape}, all_features shape: {all_features.shape}\n")
-
-names = dataset["frame_name"]
-cams = []
-for name in names:
-    index = name.find("cam") + 4
-    cams.append(int(name[index]))
-
-dataset["cams"] = pd.Series(cams)
-
-print(f"\n{dataset.head()}\n")
-
+    X_train = train_features, y_train = train_dataset["micro_labels"]
+    X_val = val_features, y_val = val_dataset["micro_labels"]
+else:
+    dataset_dataloader = DatasetLoader(dataset_folder, features_folder, opt.train_actors, opt.train_cams)
+    dataset, features = dataset_dataloader.load()
+    # do the train-validation split
+    pass
 
 # count samples per label, get labels names, encode labels to integers
 dataset["micro_labels"].value_counts()
@@ -117,7 +114,6 @@ le = preprocessing.LabelEncoder()
 encoded_labels = le.fit_transform(dataset["micro_labels"])
 encoded_labels_unique = np.unique(encoded_labels)
 n_labels = len(encoded_labels_unique)
-
 
 # Train Test split
 split = int(dataset.shape[0] * cfg.split_ratio)
@@ -130,11 +126,10 @@ y_test = encoded_labels[split:]
 cams_train = dataset["cams"][0:split]
 cams_test = dataset["cams"][split:]
 
-print(f"\nX_train shape :{X_train.shape}, y_train shape: {y_train.shape}, X_test shape: {X_test.shape}, y_test shape: {y_test.shape}\n")
+print(
+    f"\nX_train shape :{X_train.shape}, y_train shape: {y_train.shape}, X_test shape: {X_test.shape}, y_test shape: {y_test.shape}\n")
 
-
-print(f'\nLast train frame: {dataset["frame_name"][split]}\nFirst test frame: {dataset["frame_name"][split+1]}\n')
-
+print(f'\nLast train frame: {dataset["frame_name"][split]}\nFirst test frame: {dataset["frame_name"][split + 1]}\n')
 
 # Create Model
 train_gen = TSG(
@@ -169,7 +164,6 @@ model.compile(
 )
 model.summary()
 
-
 # Callbacks
 dir_path = f"experiments/model_checkpoint/{cfg.model}_{cfg.dataset}"
 safe_mkdir(dir_path)
@@ -184,18 +178,18 @@ model_checkpoint = ModelCheckpoint(
 callbacks = [WandbCallback(), model_checkpoint]
 
 y_test_series = to_series_labels(y_test, test_gen.n_batches, test_gen.n_windows, test_gen.seq_len, test_gen.stride)
-class_weight = compute_class_weight(class_weight="balanced", classes=encoded_labels_unique, y=encoded_labels)  # type: ignore
+class_weight = compute_class_weight(class_weight="balanced", classes=encoded_labels_unique,
+                                    y=encoded_labels)  # type: ignore
 class_weight = dict(zip(encoded_labels_unique, class_weight))
 print(f"Class weigth: {class_weight}")
 
 # Train Model
-history = model.fit(train_gen, validation_data=test_gen, epochs=cfg.epochs, callbacks=callbacks, class_weight=class_weight)
+history = model.fit(train_gen, validation_data=test_gen, epochs=cfg.epochs, callbacks=callbacks,
+                    class_weight=class_weight)
 test_gen.evaluate = True
-
 
 # Evaluate Model
 test_logits = model.predict(test_gen, verbose=1)
-
 
 # Log metrics to wandb
 

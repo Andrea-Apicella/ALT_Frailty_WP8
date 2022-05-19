@@ -10,12 +10,12 @@ class BaseOptions:
         self.parser.add_argument("--lstm1_units", type=int, default=256, help="number of units in the first LSTM layer")
         self.parser.add_argument("--lstm2_units", type=int, default=128, help="number of units in the second LSTM layer")
         self.parser.add_argument("--dropout", type=float, default=0.3, help="Dropout between the LSTM layer and the Dense layer")
-        self.parser.add_argument("--train_actors", type=list, default=[], help="List of actor numbers from 1 to 8 to use as traing data. Default: empty list, so train_test_split will be used.")
-        self.parser.add_argument("--val_actors", type=list, default=[], help="List of actor numbers from 1 to 8 to use as validation data. Default: empty list, so train_test_split will be used.")
-        self.parser.add_argument("--train_cams", type=list, default=[], help="List of cameras numbers from 1 to 7 to use as traing data. Default: all cameras")
-        self.parser.add_argument("--val_cams", type=list, default=[], help="List of cameras numbers from 1 to 7 to use as validation data. Default: all cameras")
-        self.parser.add_argument("--split_ratio", type=float, default=0.7, help="Train-validation split ratio. Default: 70% train, 30% val")
-        self.parser.add_argument("--drop_offair", type=bool, default=False, help="Wheter to drop the off_air frames in which the actor is repositioning between sequences. Default: False")
+        self.parser.add_argument("--train_actors", nargs="+", default=[], help="List of actor numbers from 1 to 8 to use as traing data. Default: empty list, so train_test_split will be used.")
+        self.parser.add_argument("--val_actors", nargs="+", default=[], help="List of actor numbers from 1 to 8 to use as validation data. Default: empty list, so train_test_split will be used.")
+        self.parser.add_argument("--train_cams", nargs="+", default=[], help="List of cameras numbers from 1 to 7 to use as traing data. Default: all cameras")
+        self.parser.add_argument("--val_cams", nargs="+", default=[], help="List of cameras numbers from 1 to 7 to use as validation data. Default: all cameras")
+        self.parser.add_argument("--split_ratio", type=float, default=0.7, help="Train-validation split ratio. Default: 0.7")
+        self.parser.add_argument("--drop_offair", type=bool, default=True, help="Wheter to drop the off_air frames in which the actor is repositioning between sequences. Default: True")
         self.parser.add_argument("--balance_classes", type=bool, default=False, help="Wheter to perform a subsample of the dataset to obtain balanced classes. Default: False")
 
     def parse(self):

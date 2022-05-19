@@ -9,8 +9,10 @@ from statistics import mode
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+import wandb
 from sklearn import preprocessing
 from sklearn.utils.class_weight import compute_class_weight
+
 # from sklearn.metrics import classification_report
 # from sklearn.model_selection import train_test_split
 from tensorflow.keras.callbacks import ModelCheckpoint
@@ -18,7 +20,6 @@ from tensorflow.keras.layers import LSTM, Dense, Dropout
 from tensorflow.keras.models import Sequential
 from wandb.keras import WandbCallback
 
-import wandb
 from wp8.options.train_options import TrainOptions
 from wp8.pre_processing.generators import TimeSeriesGenerator as TSG
 from wp8.pre_processing.utils import safe_mkdir
@@ -66,12 +67,6 @@ run = wandb.init(
 
 cfg = wandb.config
 
-# # count samples per label, get labels names, encode labels to integers
-# with open("data/micro_classes.csv", newline="") as f:
-#     reader = csv.reader(f)
-#     micro_labels_names = list(reader)
-
-# n_labels = len(micro_labels_names)
 
 X_train, y_train, X_val, y_val, cams_train, cams_val, classes = load_and_split(opt.train_actors, opt.val_actors, opt.train_cams, opt.val_cams, opt.split_ratio, opt.drop_offair)
 

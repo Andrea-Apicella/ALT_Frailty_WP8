@@ -106,9 +106,9 @@ if y_train_series_unique.sort() != y_val_series_unique.sort():
 
 
 model = Sequential()
-model.add(LSTM(units=cfg.lstm1_units, input_shape=(20, cfg.num_features), return_sequences=True))
+model.add(LSTM(units=cfg.lstm1_units, input_shape=(cfg.seq_len, cfg.num_features), return_sequences=True))
 model.add(Dropout(cfg.dropout))
-model.add(LSTM(units=cfg.lstm2_units, input_shape=(20, cfg.num_features)))
+model.add(LSTM(units=cfg.lstm2_units, input_shape=(cfg.seq_len, cfg.num_features)))
 model.add(Dropout(cfg.dropout))
 model.add(Dense(len(y_train_series_unique), activation="softmax"))
 model.compile(

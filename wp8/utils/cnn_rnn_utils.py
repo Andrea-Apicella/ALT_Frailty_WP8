@@ -16,7 +16,6 @@ class DatasetLoader:
         self.actors = [int(a) for a in actors]
         self.cams = [int(c) for c in cams]
         self.drop_offair = drop_offair
-        self.undersample = undersample
 
     def load(self) -> tuple[pd.Series, np.ndarray]:
         datasets_paths = lsdir(self.dataset_folder)

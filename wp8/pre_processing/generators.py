@@ -37,7 +37,7 @@ class TimeSeriesGenerator(Sequence):
         cams = batch["cams"]
 
         time_series = [np.empty(self.num_features)] * self.n_windows
-        y_s = np.empty(shape=(self.n_windows,), dtype=np.uint8)
+        y_s = np.empty(shape=(self.n_windows,), dtype=np.dtype(str))
         # s = 0
         for s in range(0, self.n_windows, self.stride):
             # s = w * self.stride

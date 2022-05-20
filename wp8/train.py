@@ -51,7 +51,7 @@ run = wandb.init(
         "seq_len": opt.seq_len,
         "num_features": 2048,
         "batch_size": opt.batch_size,
-        "sliding_window_stride": opt.stride,
+        "stride": opt.stride,
         "loss_function": "sparse_categorical_crossentropy",
         "architecture": "LSTM",
         "train_actors": opt.train_actors,

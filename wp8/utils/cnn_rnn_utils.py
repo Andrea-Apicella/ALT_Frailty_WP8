@@ -81,7 +81,9 @@ def load_and_split(train_actors: list, val_actors: list, train_cams: list, val_c
     if val_actors:
         train_dataloader = DatasetLoader(dataset_folder, features_folder, train_actors, train_cams, drop_offair)
         val_dataloader = DatasetLoader(dataset_folder, features_folder, val_actors, val_cams, drop_offair)
+        print("[STATUS] Load Train Set")
         train_dataset, train_features = train_dataloader.load()
+        print("[STATUS] Load Val Set")
         val_dataset, val_features = val_dataloader.load()
 
         X_train = train_features
@@ -99,9 +101,10 @@ def load_and_split(train_actors: list, val_actors: list, train_cams: list, val_c
     else:
         # do the train-validation split
         dataset_dataloader = DatasetLoader(dataset_folder, features_folder, train_actors, train_cams, drop_offair)
+        print("[STATUS] Load Dataset")
         dataset, features = dataset_dataloader.load()
         split = int(dataset.shape[0] * split_ratio)
-
+        print("[STATUS] Splitting in Train and Val sets")
         X_train = np.array(features[0:split, :])
         X_val = np.array(features[split:, :])
 

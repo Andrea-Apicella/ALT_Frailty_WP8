@@ -48,7 +48,7 @@ run = wandb.init(
     config={
         "model": "LSTM",
         "epochs": opt.epochs,
-        "sequence_length": opt.seq_len,
+        "seq_len": opt.seq_len,
         "num_features": 2048,
         "batch_size": opt.batch_size,
         "sliding_window_stride": opt.stride,

@@ -12,7 +12,6 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from sklearn.preprocessing import OneHotEncoder
-from sklearn.utils.class_weight import compute_class_weight
 
 # from sklearn.metrics import classification_report
 # from sklearn.model_selection import train_test_split
@@ -74,10 +73,8 @@ X_train, y_train, X_val, y_val, cams_train, cams_val = load_and_split(opt.train_
 print(f"\nX_train shape: {X_train.shape}, len y_train: {len(y_train)}, X_val shape: {X_val.shape}, len y_val: {len(y_val)}\n")
 
 
-y_train_series, y_val_series, enc = get_timeseries_labels_encoded(y_train, y_val, cfg)
+y_train_series, y_val_series, enc, class_weights = get_timeseries_labels_encoded(y_train, y_val, cfg)
 
-y_train_series_unique = np.unique(y_train_series)
-y_val_series_unique = np.unique(y_val_series)
 
 # Create Model
 train_gen = TSG(
@@ -102,16 +99,12 @@ val_gen = TSG(
 )
 
 
-if y_train_series_unique.sort() != y_val_series_unique.sort():
-    raise Exception("y_train_series_unique != y_val_series_unique")
-
-
 model = Sequential()
 model.add(LSTM(units=cfg.lstm1_units, input_shape=(cfg.seq_len, cfg.num_features), return_sequences=True))
 model.add(Dropout(cfg.dropout))
 model.add(LSTM(units=cfg.lstm2_units, input_shape=(cfg.seq_len, cfg.num_features)))
 model.add(Dropout(cfg.dropout))
-model.add(Dense(len(y_train_series_unique), activation="softmax"))
+model.add(Dense(len(np.unique(y_train_series)), activation="softmax"))
 model.compile(
     optimizer=tf.keras.optimizers.Adam(learning_rate=cfg.learning_rate),
     loss=cfg.loss_function,
@@ -135,11 +128,6 @@ model_checkpoint = ModelCheckpoint(
 
 callbacks = [WandbCallback(), model_checkpoint]
 
-# Class Weights
-class_weights = compute_class_weight(class_weight="balanced", classes=y_train_series_unique, y=y_train_series)
-class_weights = dict(zip(y_train_series_unique, class_weights))
-# print(f"\nClasses mapping: {classes}")
-print(f"\nClass weights for train series: {class_weights}")
 
 # Train Model
 history = model.fit(train_gen, validation_data=val_gen, epochs=cfg.epochs, callbacks=callbacks, class_weight=class_weights)

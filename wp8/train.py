@@ -12,6 +12,7 @@ import pandas as pd
 import tensorflow as tf
 from sklearn import preprocessing
 from sklearn.utils.class_weight import compute_class_weight
+
 # from sklearn.metrics import classification_report
 # from sklearn.model_selection import train_test_split
 from tensorflow.keras.callbacks import ModelCheckpoint
@@ -125,20 +126,20 @@ model_checkpoint = ModelCheckpoint(
     monitor="val_accuracy",
     save_best_only=True,
     save_weights_only=True,
-    initial_value_threshold=0.8
+    initial_value_threshold=0.8,
     verbose=1,
 )
 
 callbacks = [WandbCallback(), model_checkpoint]
 
 # Class Weights
-class_weight = compute_class_weight(class_weight="balanced", classes=y_train_series_unique, y=y_train_series)
-class_weight = dict(zip(y_train_series_unique, class_weight))
+class_weights = compute_class_weight(class_weight="balanced", classes=y_train_series_unique, y=y_train_series)
+class_weights = dict(zip(y_train_series_unique, class_weights))
 print(f"\nClasses mapping: {classes}")
-print(f"\nClass weights for train series: {class_weight}")
+print(f"\nClass weights for train series: {class_weights}")
 
 # Train Model
-history = model.fit(train_gen, validation_data=val_gen, epochs=cfg.epochs, callbacks=callbacks, class_weight=class_weight)
+history = model.fit(train_gen, validation_data=val_gen, epochs=cfg.epochs, callbacks=callbacks, class_weight=class_weights)
 val_gen.evaluate = True
 
 # Evaluate Model

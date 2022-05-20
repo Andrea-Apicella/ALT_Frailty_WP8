@@ -52,14 +52,14 @@ class TimeSeriesGenerator(Sequence):
             time_series[s] = features_seq
 
             # convert time-step labels in one label per time-series
-            labels_seq = [l for l in labels_seq if l is not -10]
+            labels_seq = [l for l in labels_seq if l != -10]
             label = mode(labels_seq)  # label with most occurrence
             y_s[s] = label
 
         if not self.evaluate:
             self.series_labels.extend(y_s)
             self.ys_count += len(y_s)
-        return np.asarray(time_series), self.labels_encoder.fit_transform(y_s)
+        return np.array(time_series), self.labels_encoder.fit_transform(y_s)
 
     def __getitem__(self, index):
         self.get_item_calls += 1

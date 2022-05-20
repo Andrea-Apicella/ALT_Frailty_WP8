@@ -40,7 +40,6 @@ opt = TrainOptions().parse()
 if set(opt.train_actors) & set(opt.val_actors):
     raise Exception("Can't use the same actors both in train and validation splits")
 
-# opt.train_actors
 # WANDB project initialization
 run = wandb.init(
     project="Fall detection CNN + RNN",

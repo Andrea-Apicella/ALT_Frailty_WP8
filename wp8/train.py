@@ -86,11 +86,20 @@ train_gen = TSG(
     num_features=cfg.num_features,
     cams=cams_train,
     batch_size=cfg.batch_size,
-    stride=cfg.sliding_window_stride,
+    stride=cfg.stride,
     seq_len=cfg.seq_len,
     labels_encoder=enc,
 )
-val_gen = TSG(X=X_val, y=y_val, cams=cams_val, num_features=cfg.num_features, batch_size=cfg.batch_size, stride=cfg.sliding_window_stride, seq_len=cfg.seq_len, labels_encoder=enc)
+val_gen = TSG(
+    X=X_val,
+    y=y_val,
+    cams=cams_val,
+    num_features=cfg.num_features,
+    batch_size=cfg.batch_size,
+    stride=cfg.stride,
+    seq_len=cfg.seq_len,
+    labels_encoder=enc,
+)
 
 
 if y_train_series_unique.sort() != y_val_series_unique.sort():

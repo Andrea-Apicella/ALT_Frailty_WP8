@@ -11,8 +11,9 @@ from statistics import mode
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from sklearn import preprocessing
+from sklearn.preprocessing import OneHotEncoder
 from sklearn.utils.class_weight import compute_class_weight
+
 # from sklearn.metrics import classification_report
 # from sklearn.model_selection import train_test_split
 from tensorflow.keras.callbacks import ModelCheckpoint
@@ -24,7 +25,7 @@ import wandb
 from wp8.options.train_options import TrainOptions
 from wp8.pre_processing.generators import TimeSeriesGenerator as TSG
 from wp8.pre_processing.utils import safe_mkdir
-from wp8.utils.cnn_rnn_utils import load_and_split, to_series_labels
+from wp8.utils.cnn_rnn_utils import get_timeseries_labels_encoded, load_and_split
 
 # Set random seeds
 np.random.seed(2)
@@ -69,11 +70,14 @@ run = wandb.init(
 
 cfg = wandb.config
 
-
-X_train, y_train, X_val, y_val, cams_train, cams_val, classes = load_and_split(opt.train_actors, opt.val_actors, opt.train_cams, opt.val_cams, opt.split_ratio, opt.drop_offair, opt.undersample)
-
-
+X_train, y_train, X_val, y_val, cams_train, cams_val = load_and_split(opt.train_actors, opt.val_actors, opt.train_cams, opt.val_cams, opt.split_ratio, opt.drop_offair, opt.undersample)
 print(f"\nX_train shape: {X_train.shape}, len y_train: {len(y_train)}, X_val shape: {X_val.shape}, len y_val: {len(y_val)}\n")
+
+
+y_train_series, y_val_series, enc = get_timeseries_labels_encoded(y_train, y_val, cfg)
+
+y_train_series_unique = np.unique(y_train_series)
+y_val_series_unique = np.unique(y_val_series)
 
 # Create Model
 train_gen = TSG(
@@ -84,21 +88,10 @@ train_gen = TSG(
     batch_size=cfg.batch_size,
     stride=cfg.sliding_window_stride,
     seq_len=cfg.seq_len,
+    labels_encoder=enc,
 )
-val_gen = TSG(
-    X=X_val,
-    y=y_val,
-    cams=cams_val,
-    num_features=cfg.num_features,
-    batch_size=cfg.batch_size,
-    stride=cfg.sliding_window_stride,
-    seq_len=cfg.seq_len,
-)
+val_gen = TSG(X=X_val, y=y_val, cams=cams_val, num_features=cfg.num_features, batch_size=cfg.batch_size, stride=cfg.sliding_window_stride, seq_len=cfg.seq_len, labels_encoder=enc)
 
-y_train_series = to_series_labels(y_train, train_gen.n_batches, train_gen.n_windows, train_gen.seq_len, train_gen.stride)
-y_val_series = to_series_labels(y_val, val_gen.n_batches, val_gen.n_windows, val_gen.seq_len, val_gen.stride)
-y_train_series_unique = np.unique(y_train_series)
-y_val_series_unique = np.unique(y_val_series)
 
 if y_train_series_unique.sort() != y_val_series_unique.sort():
     raise Exception("y_train_series_unique != y_val_series_unique")

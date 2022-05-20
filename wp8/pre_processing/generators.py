@@ -1,3 +1,4 @@
+from cProfile import label
 from statistics import mode
 
 import numpy as np
@@ -5,7 +6,7 @@ from tensorflow.keras.utils import Sequence
 
 
 class TimeSeriesGenerator(Sequence):
-    def __init__(self, X: np.ndarray, y: list, num_features: int, cams: list, seq_len: int, stride: int, batch_size: int, evaluate=False):
+    def __init__(self, X: np.ndarray, y: list, num_features: int, cams: list, seq_len: int, stride: int, batch_size: int, labels_encoder, evaluate=False):
         self.X = X
         self.y = y
         self.num_features = num_features
@@ -23,6 +24,7 @@ class TimeSeriesGenerator(Sequence):
         self.series_labels = []
         self.ys_count = 0
         self.get_item_calls = 0
+        self.labels_encoder = labels_encoder
 
     def __len__(self):
         return self.X.shape[0] // (self.batch_size)
@@ -37,8 +39,8 @@ class TimeSeriesGenerator(Sequence):
         time_series = [np.empty(self.num_features)] * self.n_windows
         y_s = np.empty(shape=(self.n_windows,), dtype=np.uint8)
         # s = 0
-        for w in range(self.n_windows):
-            s = w * self.stride
+        for s in range(0, self.n_windows, self.stride):
+            # s = w * self.stride
             features_seq = X[s : s + self.seq_len, :]
             labels_seq = y[s : s + self.seq_len]
             cams_seq = cams[s : s + self.seq_len]
@@ -47,17 +49,17 @@ class TimeSeriesGenerator(Sequence):
                 if cams_seq[i] != curr_cam:
                     features_seq[i] = np.zeros(self.num_features)  # padding
                     labels_seq[i] = -10  # padding
-            time_series[w] = features_seq
+            time_series[s] = features_seq
 
             # convert time-step labels in one label per time-series
             labels_seq = [l for l in labels_seq if l is not -10]
-            label = int(mode(labels_seq))  # label with most occurrence
-            y_s[w] = label
+            label = mode(labels_seq)  # label with most occurrence
+            y_s[s] = label
 
         if not self.evaluate:
             self.series_labels.extend(y_s)
             self.ys_count += len(y_s)
-        return np.asarray(time_series), y_s
+        return np.asarray(time_series), self.labels_encoder.fit_transform(y_s)
 
     def __getitem__(self, index):
         self.get_item_calls += 1

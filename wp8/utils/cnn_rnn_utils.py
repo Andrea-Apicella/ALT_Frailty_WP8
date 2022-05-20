@@ -4,7 +4,7 @@ from statistics import mode
 import numpy as np
 import pandas as pd
 from imblearn.under_sampling import NearMiss
-from sklearn.preprocessing import LabelEncoder, normalize
+from sklearn.preprocessing import OneHotEncoder, normalize
 from tqdm import tqdm
 from wp8.pre_processing.utils import listdir_nohidden_sorted as lsdir
 
@@ -76,11 +76,10 @@ class DatasetLoader:
 
 def load_and_split(
     train_actors: list, val_actors: list, train_cams: list, val_cams: list, split_ratio: float, drop_offair: bool, undersample: bool
-) -> tuple[np.ndarray, list, np.ndarray, list, list, list, dict]:
+) -> tuple[np.ndarray, list, np.ndarray, list, list, list]:
     # Load dataset and features
     features_folder = "outputs/dataset/features/"
     dataset_folder = "outputs/dataset/dataset/"
-    le = LabelEncoder()
 
     if val_actors:
         train_dataloader = DatasetLoader(dataset_folder, features_folder, train_actors, train_cams, drop_offair)
@@ -93,9 +92,8 @@ def load_and_split(
         X_train = train_features
         X_val = val_features
 
-        y_train = le.fit_transform(train_dataset["micro_labels"]).tolist()
-        classes = dict(zip(le.classes_, range(len(le.classes_))))
-        y_val = le.fit_transform(val_dataset["micro_labels"]).tolist()
+        y_train = train_dataset["micro_labels"].tolist()
+        y_val = val_dataset["micro_labels"].tolist()
 
         cams_train = train_dataset["cam"].tolist()
         cams_val = val_dataset["cam"].tolist()
@@ -107,7 +105,7 @@ def load_and_split(
             X_train, y_train = us.fit_resample(X_train, y_train)
             print(f"Train set distribution after undersampling: {Counter(y_train)}")
 
-        return X_train, y_train, X_val, y_val, cams_train, cams_val, classes
+        return X_train, y_train, X_val, y_val, cams_train, cams_val
 
     else:
         # do the train-validation split
@@ -119,9 +117,9 @@ def load_and_split(
         X_train = np.array(features[0:split, :])
         X_val = np.array(features[split:, :])
 
-        y_train = le.fit_transform(dataset["micro_labels"][0:split]).tolist()
-        classes = dict(zip(le.classes_, range(len(le.classes_))))
-        y_val = le.fit_transform(dataset["micro_labels"][split:]).tolist()
+        y_train = dataset["micro_labels"][0:split].tolist()
+
+        y_val = dataset["micro_labels"][split:].tolist()
 
         cams_train = dataset["cams"][0:split].tolist()
         cams_val = dataset["cams"][split:].tolist()
@@ -133,13 +131,28 @@ def load_and_split(
             X_train, y_train = us.fit_resample(X_train, y_train)
             print(f"Train set distribution after undersampling: {Counter(y_train)}")
 
-        return X_train, y_train, X_val, y_val, cams_train, cams_val, classes
+        return X_train, y_train, X_val, y_val, cams_train, cams_val
 
 
-def to_series_labels(timestep_labels: list, n_batches: int, n_windows: int, seq_len: int, stride: int) -> list:
-    series_labels = []
-    for w in range(n_windows * n_batches):
-        s = w * stride
-        labels_seq = timestep_labels[s : s + seq_len]
-        series_labels.append(mode(labels_seq))
-    return series_labels
+def get_timeseries_labels_encoded(y_train, y_val, cfg) -> tuple[list, list, OneHotEncoder]:
+    def to_series_labels(timestep_labels: list, n_batches: int, n_windows: int, seq_len: int, stride: int) -> list:
+        series_labels = []
+        for s in range(0, n_windows * n_batches, stride):
+            labels_seq = timestep_labels[s : s + seq_len]
+            series_labels.append(mode(labels_seq))
+        return series_labels
+
+    n_train_batches = len(y_train) // cfg.batch_size
+    n_val_batches = len(y_val) // cfg.batch_size
+    n_windows = (cfg.batch_size - cfg.seq_len) // cfg.stride + 1
+    y_train_series = to_series_labels(y_train, n_train_batches, n_windows, cfg.seq_len, cfg.stride)
+    y_val_series = to_series_labels(y_val, n_val_batches, n_windows, cfg.seq_len, cfg.stride)
+
+    # encoding
+    enc = OneHotEncoder(handle_unknown="ignore", sparse=False)
+    enc = enc.fit(y_train_series)
+
+    y_train_series = enc.fit_transform(y_train_series)
+    y_val_series = enc.fit_transform(y_val_series)
+
+    return y_train_series, y_val_series, enc

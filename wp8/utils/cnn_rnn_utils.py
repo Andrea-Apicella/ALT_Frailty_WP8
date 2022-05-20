@@ -88,28 +88,31 @@ def load_and_split(train_actors: list, val_actors: list, train_cams: list, val_c
         X_val = val_features
 
         y_train = le.fit_transform(train_dataset["micro_labels"]).tolist()
+        classes = dict(zip(le.classes_, range(len(le.classes_))))
         y_val = le.fit_transform(val_dataset["micro_labels"]).tolist()
 
         cams_train = train_dataset["cam"].tolist()
         cams_val = val_dataset["cam"].tolist()
 
-        return X_train, y_train, X_val, y_val, cams_train, cams_val, dict(zip(le.classes_, range(len(le.classes_))))
+        return X_train, y_train, X_val, y_val, cams_train, cams_val, classes
 
     else:
         # do the train-validation split
         dataset_dataloader = DatasetLoader(dataset_folder, features_folder, train_actors, train_cams, drop_offair)
         dataset, features = dataset_dataloader.load()
         split = int(dataset.shape[0] * split_ratio)
+
         X_train = np.array(features[0:split, :])
         X_val = np.array(features[split:, :])
 
         y_train = le.fit_transform(dataset["micro_labels"][0:split]).tolist()
+        classes = dict(zip(le.classes_, range(len(le.classes_))))
         y_val = le.fit_transform(dataset["micro_labels"][split:]).tolist()
 
         cams_train = dataset["cams"][0:split].tolist()
         cams_val = dataset["cams"][split:].tolist()
 
-        return X_train, y_train, X_val, y_val, cams_train, cams_val, dict(zip(le.classes_, range(len(le.classes_))))
+        return X_train, y_train, X_val, y_val, cams_train, cams_val, classes
 
 
 def to_series_labels(timestep_labels: list, n_batches: int, n_windows: int, seq_len: int, stride: int) -> list:

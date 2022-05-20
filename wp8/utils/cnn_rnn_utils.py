@@ -103,7 +103,7 @@ def load_and_split(
         if undersample:
             print("[STATUS] Undersampling train set")
             print(f"Initial Train set distribution: {Counter(y_train)}")
-            us = NearMiss(version=3)
+            us = NearMiss(version=1)
             X_train, y_train = us.fit_resample(X_train, y_train)
             print(f"Train set distribution after undersampling: {Counter(y_train)}")
 
@@ -129,7 +129,7 @@ def load_and_split(
         if undersample:
             print("[STATUS] Undersampling train set")
             print(f"Initial Train set distribution: {Counter(y_train)}")
-            us = NearMiss(version=3)
+            us = NearMiss(version=1)
             X_train, y_train = us.fit_resample(X_train, y_train)
             print(f"Train set distribution after undersampling: {Counter(y_train)}")
 

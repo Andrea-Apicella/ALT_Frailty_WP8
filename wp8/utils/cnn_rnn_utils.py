@@ -1,7 +1,9 @@
+from collections import Counter
 from statistics import mode
 
 import numpy as np
 import pandas as pd
+from imblearn.under_sampling import NearMiss
 from sklearn.preprocessing import LabelEncoder, normalize
 from tqdm import tqdm
 from wp8.pre_processing.utils import listdir_nohidden_sorted as lsdir
@@ -14,6 +16,7 @@ class DatasetLoader:
         self.actors = [int(a) for a in actors]
         self.cams = [int(c) for c in cams]
         self.drop_offair = drop_offair
+        self.undersample = undersample
 
     def load(self) -> tuple[pd.Series, np.ndarray]:
         datasets_paths = lsdir(self.dataset_folder)
@@ -72,7 +75,9 @@ class DatasetLoader:
         return dataset, all_features
 
 
-def load_and_split(train_actors: list, val_actors: list, train_cams: list, val_cams: list, split_ratio: float, drop_offair: bool) -> tuple[np.ndarray, list, np.ndarray, list, list, list, dict]:
+def load_and_split(
+    train_actors: list, val_actors: list, train_cams: list, val_cams: list, split_ratio: float, drop_offair: bool, undersample: bool
+) -> tuple[np.ndarray, list, np.ndarray, list, list, list, dict]:
     # Load dataset and features
     features_folder = "outputs/dataset/features/"
     dataset_folder = "outputs/dataset/dataset/"
@@ -96,6 +101,13 @@ def load_and_split(train_actors: list, val_actors: list, train_cams: list, val_c
         cams_train = train_dataset["cam"].tolist()
         cams_val = val_dataset["cam"].tolist()
 
+        if undersample:
+            print("[STATUS] Undersampling train set")
+            print(f"Initial Train set distribution: {Counter(y_train)}")
+            us = NearMiss(version=3)
+            X_train, y_train = us.fit_resample(X_train, y_train)
+            print(f"Train set distribution after undersampling: {Counter(y_train)}")
+
         return X_train, y_train, X_val, y_val, cams_train, cams_val, classes
 
     else:
@@ -114,6 +126,13 @@ def load_and_split(train_actors: list, val_actors: list, train_cams: list, val_c
 
         cams_train = dataset["cams"][0:split].tolist()
         cams_val = dataset["cams"][split:].tolist()
+
+        if undersample:
+            print("[STATUS] Undersampling train set")
+            print(f"Initial Train set distribution: {Counter(y_train)}")
+            us = NearMiss(version=3)
+            X_train, y_train = us.fit_resample(X_train, y_train)
+            print(f"Train set distribution after undersampling: {Counter(y_train)}")
 
         return X_train, y_train, X_val, y_val, cams_train, cams_val, classes
 

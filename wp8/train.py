@@ -4,6 +4,7 @@
 import csv
 import gc
 import os
+from collections import Counter
 from datetime import datetime
 from statistics import mode
 
@@ -63,13 +64,14 @@ run = wandb.init(
         "learning_rate": opt.learning_rate,
         "split_ratio": opt.split_ratio,
         "drop_offair": opt.drop_offair,
+        "undersample": opt.undersample,
     },
 )
 
 cfg = wandb.config
 
 
-X_train, y_train, X_val, y_val, cams_train, cams_val, classes = load_and_split(opt.train_actors, opt.val_actors, opt.train_cams, opt.val_cams, opt.split_ratio, opt.drop_offair)
+X_train, y_train, X_val, y_val, cams_train, cams_val, classes = load_and_split(opt.train_actors, opt.val_actors, opt.train_cams, opt.val_cams, opt.split_ratio, opt.drop_offair, opt.undersample)
 
 
 print(f"\nX_train shape: {X_train.shape}, len y_train: {len(y_train)}, X_val shape: {X_val.shape}, len y_val: {len(y_val)}\n")

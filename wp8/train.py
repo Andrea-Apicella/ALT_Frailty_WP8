@@ -13,7 +13,6 @@ import pandas as pd
 import tensorflow as tf
 from sklearn import preprocessing
 from sklearn.utils.class_weight import compute_class_weight
-
 # from sklearn.metrics import classification_report
 # from sklearn.model_selection import train_test_split
 from tensorflow.keras.callbacks import ModelCheckpoint
@@ -84,7 +83,7 @@ train_gen = TSG(
     cams=cams_train,
     batch_size=cfg.batch_size,
     stride=cfg.sliding_window_stride,
-    seq_len=cfg.sequence_length,
+    seq_len=cfg.seq_len,
 )
 val_gen = TSG(
     X=X_val,
@@ -93,7 +92,7 @@ val_gen = TSG(
     num_features=cfg.num_features,
     batch_size=cfg.batch_size,
     stride=cfg.sliding_window_stride,
-    seq_len=cfg.sequence_length,
+    seq_len=cfg.seq_len,
 )
 
 y_train_series = to_series_labels(y_train, train_gen.n_batches, train_gen.n_windows, train_gen.seq_len, train_gen.stride)

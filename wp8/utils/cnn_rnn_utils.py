@@ -150,7 +150,7 @@ def get_timeseries_labels_encoded(y_train, y_val, cfg) -> tuple[list, list, OneH
 
     # encoding
     enc = OneHotEncoder(handle_unknown="ignore", sparse=False)
-    enc = enc.fit(y_train_series)
+    enc = enc.fit(np.array(y_train_series).reshape(-1, 1))
 
     y_train_series = enc.fit_transform(y_train_series)
     y_val_series = enc.fit_transform(y_val_series)

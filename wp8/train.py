@@ -129,7 +129,7 @@ callbacks = [WandbCallback(), model_checkpoint]
 # Class Weights
 class_weights = compute_class_weight(class_weight="balanced", classes=y_train_series_unique, y=y_train_series)
 class_weights = dict(zip(y_train_series_unique, class_weights))
-print(f"\nClasses mapping: {classes}")
+# print(f"\nClasses mapping: {classes}")
 print(f"\nClass weights for train series: {class_weights}")
 
 # Train Model

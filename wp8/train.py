@@ -106,7 +106,7 @@ model.add(Dense(len(y_train_series_unique), activation="softmax"))
 model.compile(
     optimizer=tf.keras.optimizers.Adam(learning_rate=cfg.learning_rate),
     loss=cfg.loss_function,
-    metrics=["accuracy", "sparse_categorical_accuracy"],
+    metrics=["accuracy", "categorical_crossentropy"],
 )
 model.summary()
 
@@ -150,8 +150,8 @@ gc.collect()
 # Log metrics to wandb
 y_pred_val_classes = np.argmax(val_logits, axis=1).tolist()
 
-wandb.sklearn.plot_roc(y_val_series, val_logits, classes)
-wandb.sklearn.plot_class_proportions(y_train_series, y_val_series, classes)
-wandb.sklearn.plot_precision_recall(y_val_series, val_logits, classes)
-wandb.sklearn.plot_confusion_matrix(y_val_series, y_pred_val_classes, classes)
+# wandb.sklearn.plot_roc(y_val_series, val_logits, classes)
+# wandb.sklearn.plot_class_proportions(y_train_series, y_val_series, classes)
+# wandb.sklearn.plot_precision_recall(y_val_series, val_logits, classes)
+# wandb.sklearn.plot_confusion_matrix(y_val_series, y_pred_val_classes, classes)
 wandb.join()

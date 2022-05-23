@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from sklearn.preprocessing import OneHotEncoder
-from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau
 from tensorflow.keras.layers import LSTM, Dense, Dropout
 from tensorflow.keras.models import Sequential
 from wandb.keras import WandbCallback
@@ -49,6 +49,7 @@ run = wandb.init(
         "dropout": opt.dropout,
         "lstm1_units": opt.lstm1_units,
         "lstm2_units": opt.lstm2_units,
+        "dense_units": opt.dense_units,
         "learning_rate": opt.learning_rate,
         "split_ratio": opt.split_ratio,
         "drop_offair": opt.drop_offair,
@@ -95,7 +96,9 @@ model.add(LSTM(units=cfg.lstm1_units, input_shape=(cfg.seq_len, cfg.num_features
 model.add(Dropout(cfg.dropout))
 model.add(LSTM(units=cfg.lstm2_units, input_shape=(cfg.seq_len, cfg.num_features)))
 model.add(Dropout(cfg.dropout))
-model.add(Dense(np.unique(y_train_series, axis=0).shape[0], activation="softmax"))
+model.add(Dense(units=cfg.dense_units), activation="relu")
+model.add(Dropout(cfg.dropout))
+model.add(Dense(units=np.unique(y_train_series, axis=0).shape[0], activation="softmax"))
 model.compile(
     optimizer=tf.keras.optimizers.Adam(learning_rate=cfg.learning_rate),
     loss=cfg.loss_function,
@@ -109,6 +112,7 @@ dir_path = f"model_checkpoints/{cfg.model}"
 safe_mkdir(dir_path)
 now = datetime.now()
 dt_string = now.strftime("%d/%m/%Y_%H:%M:%S")
+
 model_checkpoint = ModelCheckpoint(
     filepath=f"{dir_path}/{cfg.model}_{dt_string}",
     monitor="val_accuracy",
@@ -118,7 +122,18 @@ model_checkpoint = ModelCheckpoint(
     verbose=1,
 )
 
-callbacks = [WandbCallback(), model_checkpoint]
+reduce_lr = ReduceLROnPlateau(
+    monitor="val_accuracy",
+    factor=0.1,
+    patience=10,
+    verbose=1,
+    mode="auto",
+    min_delta=1e-5,
+    cooldown=1,
+    min_lr=1e-9,
+)
+
+callbacks = [WandbCallback(), model_checkpoint, reduce_lr]
 
 
 # Train Model

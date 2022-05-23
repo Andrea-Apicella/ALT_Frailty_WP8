@@ -103,7 +103,7 @@ model.add(LSTM(units=cfg.lstm1_units, input_shape=(cfg.seq_len, cfg.num_features
 model.add(Dropout(cfg.dropout))
 model.add(LSTM(units=cfg.lstm2_units, input_shape=(cfg.seq_len, cfg.num_features)))
 model.add(Dropout(cfg.dropout))
-model.add(Dense(len(np.unique(y_train_series)), activation="softmax"))
+model.add(Dense(np.unique(y_train_series).shape[0], activation="softmax"))
 model.compile(
     optimizer=tf.keras.optimizers.Adam(learning_rate=cfg.learning_rate),
     loss=cfg.loss_function,

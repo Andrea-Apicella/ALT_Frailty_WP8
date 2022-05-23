@@ -12,9 +12,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from sklearn.preprocessing import OneHotEncoder
-from tensorflow.keras.activations import ELU
-from tensorflow.keras.callbacks import (EarlyStopping, ModelCheckpoint,
-                                        ReduceLROnPlateau)
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 from tensorflow.keras.layers import LSTM, Dense, Dropout
 from tensorflow.keras.models import Sequential
 from wandb.keras import WandbCallback
@@ -23,8 +21,7 @@ import wandb
 from wp8.options.train_options import TrainOptions
 from wp8.pre_processing.generators import TimeSeriesGenerator as TSG
 from wp8.pre_processing.utils import safe_mkdir
-from wp8.utils.cnn_rnn_utils import (get_timeseries_labels_encoded,
-                                     load_and_split)
+from wp8.utils.cnn_rnn_utils import get_timeseries_labels_encoded, load_and_split
 
 opt = TrainOptions().parse()
 
@@ -99,8 +96,7 @@ model.add(LSTM(units=cfg.lstm1_units, input_shape=(cfg.seq_len, cfg.num_features
 model.add(Dropout(cfg.dropout))
 model.add(LSTM(units=cfg.lstm2_units, input_shape=(cfg.seq_len, cfg.num_features)))
 model.add(Dropout(cfg.dropout))
-model.add(Dense(units=cfg.dense_units))
-model.add(ELU())
+model.add(Dense(units=cfg.dense_units, activation="elu"))
 model.add(Dropout(cfg.dropout))
 model.add(Dense(units=np.unique(y_train_series, axis=0).shape[0], activation="softmax"))
 model.compile(

@@ -154,7 +154,7 @@ def get_timeseries_labels_encoded(y_train, y_val, cfg) -> tuple[list, list, Labe
 
     print(f"\nBefore ENCODING -- len(y_train_series): {len(y_train_series)} len(y_val_series): {len(y_val_series)}")
 
-    print(f"y_train_series value counts: {pd.Series(y_train_series).value_counts()}")
+    print(f"y_train_series value counts:\n {pd.Series(y_train_series).value_counts()}")
     # encoding
     enc = LabelEncoder()
     enc = enc.fit(y_train_series)

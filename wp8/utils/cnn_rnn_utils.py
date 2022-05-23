@@ -4,7 +4,7 @@ from statistics import mode
 import numpy as np
 import pandas as pd
 from imblearn.under_sampling import NearMiss
-from sklearn.preprocessing import OneHotEncoder, normalize
+from sklearn.preprocessing import LabelEncoder, normalize
 from sklearn.utils.class_weight import compute_class_weight
 from tqdm.notebook import tqdm
 from wp8.pre_processing.utils import listdir_nohidden_sorted as lsdir
@@ -135,7 +135,7 @@ def load_and_split(
         return X_train, y_train, X_val, y_val, cams_train, cams_val
 
 
-def get_timeseries_labels_encoded(y_train, y_val, cfg) -> tuple[list, list, OneHotEncoder, dict]:
+def get_timeseries_labels_encoded(y_train, y_val, cfg) -> tuple[list, list, LabelEncoder, dict]:
     def to_series_labels(timestep_labels: list, n_batches: int, n_windows: int, seq_len: int, stride: int) -> list:
         series_labels = []
         for s in range(0, n_windows * n_batches, stride):
@@ -150,8 +150,8 @@ def get_timeseries_labels_encoded(y_train, y_val, cfg) -> tuple[list, list, OneH
     y_val_series = to_series_labels(y_val, n_val_batches, n_windows, cfg.seq_len, cfg.stride)
 
     # encoding
-    enc = OneHotEncoder(handle_unknown="ignore", sparse=False)
-    enc = enc.fit(np.array(y_train_series).reshape(-1, 1))
+    enc = LabelEncoder()
+    enc = enc.fit(y_train_series)
 
     y_train_series_unique = np.unique(y_train_series)
     y_val_series_unique = np.unique(y_val_series)
@@ -159,12 +159,16 @@ def get_timeseries_labels_encoded(y_train, y_val, cfg) -> tuple[list, list, OneH
     if y_train_series_unique.sort() != y_val_series_unique.sort():
         raise Exception("y_train_series_unique != y_val_series_unique")
     # Class Weights
-    class_weights = compute_class_weight(class_weight="balanced", classes=y_train_series_unique, y=y_train_series)
-    y_train_series_unique_encoded = enc.fit_transform(np.array(y_train_series_unique).reshape(-1, 1))
-    class_weights = dict(zip(y_train_series_unique_encoded, class_weights))
+    # class_weights = compute_class_weight(class_weight="balanced", classes=y_train_series_unique, y=y_train_series)
+    # y_train_series_unique_encoded = enc.fit_transform(np.array(y_train_series_unique).reshape(-1, 1))
+    # print(y_train_series_unique_encoded)
+    # class_weights = dict(zip(y_train_series_unique_encoded.tolist(), class_weights))
+    y_train_series_encoded = enc.fit_transform(np.array(y_train_series).reshape(-1, 1))
+    class_weights = compute_class_weight(class_weight="balanced", classes=np.unique(y_train_series_encoded), y=y_train_series_encoded)
+    d_class_weights = dict(enumerate(class_weights))
     print(f"\nClass weights for train series: {class_weights}")
 
-    y_train_series = enc.fit_transform(np.array(y_train_series).reshape(-1, 1))
-    y_val_series = enc.fit_transform(np.array(y_val_series).reshape(-1, 1))
+    y_train_series = enc.fit_transform(y_train_series)
+    y_val_series = enc.fit_transform(y_val_series)
 
-    return y_train_series, y_val_series, enc, class_weights
+    return y_train_series, y_val_series, enc, d_class_weights

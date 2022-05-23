@@ -37,15 +37,12 @@ class TimeSeriesGenerator(Sequence):
         cams = batch["cams"]
 
         time_series = [np.empty(self.num_features)] * self.n_windows
-        # y_s = np.empty(shape=self.n_windows, dtype=np.dtype(str))
-        print(self.n_windows)
         y_s = [None] * self.n_windows
         s = 0
         for w in range(0, self.n_windows):
             s = w * self.stride
             features_seq = X[s : s + self.seq_len, :]
             labels_seq = y[s : s + self.seq_len]
-            print(f"labels_seq: {labels_seq}")
             cams_seq = cams[s : s + self.seq_len]
             curr_cam = mode(cams_seq)
             for i, _ in enumerate(cams_seq):
@@ -53,19 +50,15 @@ class TimeSeriesGenerator(Sequence):
                     features_seq[i] = np.zeros(self.num_features)  # padding
                     labels_seq[i] = -10  # padding
             time_series[w] = features_seq
-            print(f"labels_seq after padding: {labels_seq}")
             # convert time-step labels in one label per time-series
             labels_seq = [l for l in labels_seq if l != -10]
             label = mode(labels_seq)  # label with most occurrence
-            print(f"label (mode): {label}")
             y_s[w] = label
             # y_s[s, :] = label
-            print(f"y_s: {y_s}")
 
         if not self.evaluate:
             self.series_labels.extend(y_s)
             self.ys_count += len(y_s)
-        print(np.array(y_s).reshape(-1, 1))
         return np.array(time_series), self.labels_encoder.fit_transform(np.array(y_s).reshape(-1, 1))
 
     def __getitem__(self, index):

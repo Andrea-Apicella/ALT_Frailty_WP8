@@ -135,7 +135,7 @@ def load_and_split(
         return X_train, y_train, X_val, y_val, cams_train, cams_val
 
 
-def get_timeseries_labels_encoded(y_train, y_val, cfg) -> tuple[list, list, LabelEncoder, dict]:
+def get_timeseries_labels_encoded(y_train, y_val, cfg) -> tuple[list, list, LabelEncoder, dict, list]:
     def to_series_labels(timestep_labels: list, n_batches: int, n_windows: int, seq_len: int, stride: int) -> list:
         series_labels = []
         for s in range(0, n_windows * n_batches, stride):
@@ -163,7 +163,7 @@ def get_timeseries_labels_encoded(y_train, y_val, cfg) -> tuple[list, list, Labe
     # y_train_series_unique_encoded = enc.fit_transform(np.array(y_train_series_unique).reshape(-1, 1))
     # print(y_train_series_unique_encoded)
     # class_weights = dict(zip(y_train_series_unique_encoded.tolist(), class_weights))
-    y_train_series_encoded = enc.fit_transform(np.array(y_train_series).reshape(-1, 1))
+    y_train_series_encoded = enc.fit_transform(y_train_series)
     class_weights = compute_class_weight(class_weight="balanced", classes=np.unique(y_train_series_encoded), y=y_train_series_encoded)
     d_class_weights = dict(enumerate(class_weights))
     print(f"\nClass weights for train series: {class_weights}")
@@ -171,4 +171,4 @@ def get_timeseries_labels_encoded(y_train, y_val, cfg) -> tuple[list, list, Labe
     y_train_series = enc.fit_transform(y_train_series)
     y_val_series = enc.fit_transform(y_val_series)
 
-    return y_train_series, y_val_series, enc, d_class_weights
+    return y_train_series, y_val_series, enc, d_class_weights, enc.classes_.tolist()

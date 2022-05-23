@@ -6,7 +6,7 @@ import pandas as pd
 from imblearn.under_sampling import NearMiss
 from sklearn.preprocessing import OneHotEncoder, normalize
 from sklearn.utils.class_weight import compute_class_weight
-from tqdm import tqdm
+from tqdm.notebook import tqdm
 from wp8.pre_processing.utils import listdir_nohidden_sorted as lsdir
 
 
@@ -160,8 +160,8 @@ def get_timeseries_labels_encoded(y_train, y_val, cfg) -> tuple[list, list, OneH
         raise Exception("y_train_series_unique != y_val_series_unique")
     # Class Weights
     class_weights = compute_class_weight(class_weight="balanced", classes=y_train_series_unique, y=y_train_series)
-    class_weights = dict(zip(y_train_series_unique, class_weights))
-    # print(f"\nClasses mapping: {classes}")
+    y_train_series_unique_encoded = enc.fit_transform(np.array(y_train_series_unique).reshape(-1, 1))
+    class_weights = dict(zip(y_train_series_unique_encoded, class_weights))
     print(f"\nClass weights for train series: {class_weights}")
 
     y_train_series = enc.fit_transform(np.array(y_train_series).reshape(-1, 1))

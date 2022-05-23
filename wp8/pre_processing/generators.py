@@ -59,7 +59,7 @@ class TimeSeriesGenerator(Sequence):
         if not self.evaluate:
             self.series_labels.extend(y_s)
             self.ys_count += len(y_s)
-        return np.array(time_series), self.labels_encoder.fit_transform(y_s)
+        return np.array(time_series), self.labels_encoder.fit_transform(np.array(y_s).reshape(-1, 1))
 
     def __getitem__(self, index):
         self.get_item_calls += 1

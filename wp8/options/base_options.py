@@ -15,8 +15,8 @@ class BaseOptions:
         self.parser.add_argument("--train_cams", nargs="+", default=[], help="List of cameras numbers from 1 to 7 to use as traing data. Default: all cameras")
         self.parser.add_argument("--val_cams", nargs="+", default=[], help="List of cameras numbers from 1 to 7 to use as validation data. Default: all cameras")
         self.parser.add_argument("--split_ratio", type=float, default=0.7, help="Train-validation split ratio. Default: 0.7")
-        self.parser.add_argument("--drop_offair", type=bool, default=False, help="Wheter to drop the off_air frames in which the actor is repositioning between sequences. Default: True")
-        self.parser.add_argument("--undersample", type=bool, default=False, help="Wheter to perform an undersample of the dataset to obtain balanced classes. Default: False")
+        self.parser.add_argument("--drop_offair", action="store_true", help="Wheter to drop the off_air frames in which the actor is repositioning between sequences. Default: True")
+        self.parser.add_argument("--undersample", action="store_true", help="Wheter to perform an undersample of the dataset to obtain balanced classes. Default: False")
 
     def parse(self):
         if not self.initialized:

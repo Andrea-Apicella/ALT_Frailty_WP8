@@ -138,7 +138,9 @@ def load_and_split(
 def get_timeseries_labels_encoded(y_train, y_val, cfg) -> tuple[list, list, LabelEncoder, dict, list]:
     def to_series_labels(timestep_labels: list, n_batches: int, n_windows: int, seq_len: int, stride: int) -> list:
         series_labels = []
-        for s in range(0, n_windows * n_batches, stride):
+        s = 0
+        for w in range(n_windows * n_batches):
+            s = w * stride
             labels_seq = timestep_labels[s : s + seq_len]
             series_labels.append(mode(labels_seq))
         return series_labels
@@ -146,9 +148,11 @@ def get_timeseries_labels_encoded(y_train, y_val, cfg) -> tuple[list, list, Labe
     n_train_batches = len(y_train) // cfg.batch_size
     n_val_batches = len(y_val) // cfg.batch_size
     n_windows = (cfg.batch_size - cfg.seq_len) // cfg.stride + 1
+
     y_train_series = to_series_labels(y_train, n_train_batches, n_windows, cfg.seq_len, cfg.stride)
     y_val_series = to_series_labels(y_val, n_val_batches, n_windows, cfg.seq_len, cfg.stride)
 
+    print(f"Before ENCODING -- len(y_train_series): {len(y_train_series)} len(y_val_series): {len(y_val_series)}")
     # encoding
     enc = LabelEncoder()
     enc = enc.fit(y_train_series)
@@ -166,5 +170,8 @@ def get_timeseries_labels_encoded(y_train, y_val, cfg) -> tuple[list, list, Labe
 
     y_train_series = enc.fit_transform(y_train_series)
     y_val_series = enc.fit_transform(y_val_series)
+
+    print(f" After ENCODING -- len(y_train_series): {len(y_train_series)} len(y_val_series): {len(y_val_series)}")
+    exit()
 
     return y_train_series, y_val_series, enc, d_class_weights, enc.classes_.tolist()

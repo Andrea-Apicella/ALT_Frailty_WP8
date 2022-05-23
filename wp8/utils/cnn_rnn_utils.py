@@ -152,7 +152,7 @@ def get_timeseries_labels_encoded(y_train, y_val, cfg) -> tuple[list, list, Labe
     y_train_series = to_series_labels(y_train, n_train_batches, n_windows, cfg.seq_len, cfg.stride)
     y_val_series = to_series_labels(y_val, n_val_batches, n_windows, cfg.seq_len, cfg.stride)
 
-    print(f"Before ENCODING -- len(y_train_series): {len(y_train_series)} len(y_val_series): {len(y_val_series)}")
+    print(f"\nBefore ENCODING -- len(y_train_series): {len(y_train_series)} len(y_val_series): {len(y_val_series)}")
     # encoding
     enc = LabelEncoder()
     enc = enc.fit(y_train_series)
@@ -171,7 +171,5 @@ def get_timeseries_labels_encoded(y_train, y_val, cfg) -> tuple[list, list, Labe
     y_train_series = enc.fit_transform(y_train_series)
     y_val_series = enc.fit_transform(y_val_series)
 
-    print(f" After ENCODING -- len(y_train_series): {len(y_train_series)} len(y_val_series): {len(y_val_series)}")
-    exit()
-
+    print(f"\nAfter ENCODING -- len(y_train_series): {len(y_train_series)} len(y_val_series): {len(y_val_series)}")
     return y_train_series, y_val_series, enc, d_class_weights, enc.classes_.tolist()

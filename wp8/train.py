@@ -110,7 +110,7 @@ model.add(Dense(units=np.unique(y_train_series, axis=0).shape[0], activation="so
 model.compile(
     optimizer=tf.keras.optimizers.Adam(learning_rate=cfg.learning_rate),
     loss=cfg.loss_function,
-    metrics=["accuracy", "sparse_categorical_crossentropy"],
+    metrics=["accuracy", "sparse_categorical_accuracy"],
 )
 model.summary()
 

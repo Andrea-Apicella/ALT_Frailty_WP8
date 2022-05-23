@@ -79,8 +79,8 @@ def load_and_split(
     train_actors: list, val_actors: list, train_cams: list, val_cams: list, split_ratio: float, drop_offair: bool, undersample: bool
 ) -> tuple[np.ndarray, list, np.ndarray, list, list, list]:
     # Load dataset and features
-    features_folder = "wp8/outputs/dataset/features"
-    dataset_folder = "wp8/outputs/dataset/dataset"
+    features_folder = "outputs/dataset/features"
+    dataset_folder = "outputs/dataset/dataset"
 
     if val_actors:
         train_dataloader = DatasetLoader(dataset_folder, features_folder, train_actors, train_cams, drop_offair)

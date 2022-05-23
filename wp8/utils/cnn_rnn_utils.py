@@ -149,15 +149,16 @@ def get_timeseries_labels_encoded(y_train, y_val, cfg) -> tuple[list, list, Labe
     y_train_series = to_series_labels(y_train, n_train_batches, n_windows, cfg.seq_len, cfg.stride)
     y_val_series = to_series_labels(y_val, n_val_batches, n_windows, cfg.seq_len, cfg.stride)
 
+    print(f"y_train_series before encoding {y_train_series}")
     # encoding
     enc = LabelEncoder()
     enc = enc.fit(y_train_series)
 
-    y_train_series_unique = np.unique(y_train_series)
-    y_val_series_unique = np.unique(y_val_series)
+    # y_train_series_unique = np.unique(y_train_series)
+    # y_val_series_unique = np.unique(y_val_series)
 
-    if y_train_series_unique.sort() != y_val_series_unique.sort():
-        raise Exception("y_train_series_unique != y_val_series_unique")
+    # if y_train_series_unique.sort() != y_val_series_unique.sort():
+    #     raise Exception("y_train_series_unique != y_val_series_unique")
 
     y_train_series_encoded = enc.fit_transform(y_train_series)
     class_weights = compute_class_weight(class_weight="balanced", classes=np.unique(y_train_series_encoded), y=y_train_series_encoded)

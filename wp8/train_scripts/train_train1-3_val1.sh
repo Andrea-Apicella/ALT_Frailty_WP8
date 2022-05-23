@@ -1,1 +1,1 @@
-python wp8/train.py --train_actors 1 2 3 --val_actors 4 --train_cams 1 2 --val_cams 1 --epochs 100 --batch_size 60 --drop_offair False --undersample False
+python ../train.py --train_actors 1 2 3 --val_actors 4 --train_cams 1 2 --val_cams 1 --epochs 100 --batch_size 60 --drop_offair False --undersample False

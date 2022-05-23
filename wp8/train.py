@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from sklearn.preprocessing import OneHotEncoder
-from tensorflow.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 from tensorflow.keras.layers import LSTM, Dense, Dropout
 from tensorflow.keras.models import Sequential
 from wandb.keras import WandbCallback
@@ -133,7 +133,15 @@ reduce_lr = ReduceLROnPlateau(
     min_lr=1e-9,
 )
 
-callbacks = [WandbCallback(), model_checkpoint, reduce_lr]
+early_stop = EarlyStopping(
+    monitor="val_accuracy",
+    min_delta=0,
+    patience=10,
+    verbose=1,
+    mode="auto",
+)
+
+callbacks = [WandbCallback(), model_checkpoint, reduce_lr, early_stop]
 
 
 # Train Model

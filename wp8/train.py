@@ -12,9 +12,6 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from sklearn.preprocessing import OneHotEncoder
-
-# from sklearn.metrics import classification_report
-# from sklearn.model_selection import train_test_split
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.layers import LSTM, Dense, Dropout
 from tensorflow.keras.models import Sequential
@@ -26,19 +23,12 @@ from wp8.pre_processing.generators import TimeSeriesGenerator as TSG
 from wp8.pre_processing.utils import safe_mkdir
 from wp8.utils.cnn_rnn_utils import get_timeseries_labels_encoded, load_and_split
 
-# Set random seeds
-np.random.seed(2)
-tf.random.set_seed(2)
-
-
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-
-
 opt = TrainOptions().parse()
 
-# check that actors and cams passed to the parsers are not in common between train and val sets
+
 if set(opt.train_actors) & set(opt.val_actors):
     raise Exception("Can't use the same actors both in train and validation splits")
+
 
 # WANDB project initialization
 run = wandb.init(
@@ -68,14 +58,16 @@ run = wandb.init(
 
 cfg = wandb.config
 
+
 X_train, y_train, X_val, y_val, cams_train, cams_val = load_and_split(opt.train_actors, opt.val_actors, opt.train_cams, opt.val_cams, opt.split_ratio, opt.drop_offair, opt.undersample)
 print(f"\nX_train shape: {X_train.shape}, len y_train: {len(y_train)}, X_val shape: {X_val.shape}, len y_val: {len(y_val)}\n")
 
 
-y_train_series, y_val_series, enc, class_weights = get_timeseries_labels_encoded(y_train, y_val, cfg)
+y_train_series, y_val_series, enc, class_weights, classes = get_timeseries_labels_encoded(y_train, y_val, cfg)
+
+print(f"Classes: {classes}\nClass weights: {class_weights}")
 
 
-# Create Model
 train_gen = TSG(
     X=X_train,
     y=y_train,
@@ -103,13 +95,14 @@ model.add(LSTM(units=cfg.lstm1_units, input_shape=(cfg.seq_len, cfg.num_features
 model.add(Dropout(cfg.dropout))
 model.add(LSTM(units=cfg.lstm2_units, input_shape=(cfg.seq_len, cfg.num_features)))
 model.add(Dropout(cfg.dropout))
-model.add(Dense(np.unique(y_train_series).shape[0], activation="softmax"))
+model.add(Dense(np.unique(y_train_series, axis=0).shape[0], activation="softmax"))
 model.compile(
     optimizer=tf.keras.optimizers.Adam(learning_rate=cfg.learning_rate),
     loss=cfg.loss_function,
-    metrics=["accuracy", "categorical_crossentropy"],
+    metrics=["accuracy", "sparse_categorical_crossentropy"],
 )
 model.summary()
+
 
 # Callbacks
 dir_path = f"model_checkpoints/{cfg.model}"
@@ -132,8 +125,10 @@ callbacks = [WandbCallback(), model_checkpoint]
 history = model.fit(train_gen, validation_data=val_gen, epochs=cfg.epochs, callbacks=callbacks, class_weight=class_weights)
 val_gen.evaluate = True
 
+
 # Evaluate Model
 val_logits = model.predict(val_gen, verbose=1)
+
 
 # free up memory
 del X_train
@@ -143,11 +138,12 @@ del y_val
 
 gc.collect()
 
+
 # Log metrics to wandb
 y_pred_val_classes = np.argmax(val_logits, axis=1).tolist()
 
-# wandb.sklearn.plot_roc(y_val_series, val_logits, classes)
-# wandb.sklearn.plot_class_proportions(y_train_series, y_val_series, classes)
-# wandb.sklearn.plot_precision_recall(y_val_series, val_logits, classes)
-# wandb.sklearn.plot_confusion_matrix(y_val_series, y_pred_val_classes, classes)
+wandb.sklearn.plot_roc(y_val_series, val_logits, classes)
+wandb.sklearn.plot_class_proportions(y_train_series, y_val_series, classes)
+wandb.sklearn.plot_precision_recall(y_val_series, val_logits, classes)
+wandb.sklearn.plot_confusion_matrix(y_val_series, y_pred_val_classes, classes)
 wandb.join()

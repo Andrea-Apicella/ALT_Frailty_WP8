@@ -72,6 +72,8 @@ print(f"\nX_train shape: {X_train.shape}, len y_train: {len(y_train)}, X_val sha
 
 y_train_series, y_val_series, enc, class_weights, classes = get_timeseries_labels_encoded(y_train, y_val, cfg)
 
+print(f"\nlen y_train_series_encoded: {len(y_train_series)}, len y_val_series_encoded: {len(y_val_series)}\n")
+
 print(f"Classes: {classes}\nClass weights: {class_weights}")
 
 

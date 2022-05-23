@@ -149,7 +149,6 @@ def get_timeseries_labels_encoded(y_train, y_val, cfg) -> tuple[list, list, Labe
     y_train_series = to_series_labels(y_train, n_train_batches, n_windows, cfg.seq_len, cfg.stride)
     y_val_series = to_series_labels(y_val, n_val_batches, n_windows, cfg.seq_len, cfg.stride)
 
-    print(f"y_train_series before encoding {y_train_series}")
     # encoding
     enc = LabelEncoder()
     enc = enc.fit(y_train_series)

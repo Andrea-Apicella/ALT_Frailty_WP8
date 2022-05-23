@@ -153,9 +153,13 @@ def get_timeseries_labels_encoded(y_train, y_val, cfg) -> tuple[list, list, Labe
     y_val_series = to_series_labels(y_val, n_val_batches, n_windows, cfg.seq_len, cfg.stride)
 
     print(f"\nBefore ENCODING -- len(y_train_series): {len(y_train_series)} len(y_val_series): {len(y_val_series)}")
+
+    print(f"y_train_series value counts: {pd.Series(y_train_series).value_counts()}")
     # encoding
     enc = LabelEncoder()
     enc = enc.fit(y_train_series)
+    mapping = dict(zip(enc.classes_, range(1, len(enc.classes_) + 1)))
+    print(f"Classes mapping: {mapping}")
 
     # y_train_series_unique = np.unique(y_train_series)
     # y_val_series_unique = np.unique(y_val_series)

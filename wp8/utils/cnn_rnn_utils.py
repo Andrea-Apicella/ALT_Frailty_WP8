@@ -158,11 +158,7 @@ def get_timeseries_labels_encoded(y_train, y_val, cfg) -> tuple[list, list, Labe
 
     if y_train_series_unique.sort() != y_val_series_unique.sort():
         raise Exception("y_train_series_unique != y_val_series_unique")
-    # Class Weights
-    # class_weights = compute_class_weight(class_weight="balanced", classes=y_train_series_unique, y=y_train_series)
-    # y_train_series_unique_encoded = enc.fit_transform(np.array(y_train_series_unique).reshape(-1, 1))
-    # print(y_train_series_unique_encoded)
-    # class_weights = dict(zip(y_train_series_unique_encoded.tolist(), class_weights))
+
     y_train_series_encoded = enc.fit_transform(y_train_series)
     class_weights = compute_class_weight(class_weight="balanced", classes=np.unique(y_train_series_encoded), y=y_train_series_encoded)
     d_class_weights = dict(enumerate(class_weights))

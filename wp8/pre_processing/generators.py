@@ -54,7 +54,6 @@ class TimeSeriesGenerator(Sequence):
             labels_seq = [l for l in labels_seq if l != -10]
             label = mode(labels_seq)  # label with most occurrence
             y_s[w] = label
-            # y_s[s, :] = label
 
         if not self.evaluate:
             self.series_labels.extend(y_s)
@@ -65,7 +64,6 @@ class TimeSeriesGenerator(Sequence):
         self.get_item_calls += 1
         a = index * self.batch_size
         b = (index + 1) * self.batch_size
-        # batch_id += 1
 
         batch = {"features": self.X[a:b, :], "labels": self.y[a:b], "cams": self.cams[a:b]}
         X, y = self.__get_data(batch)

@@ -14,22 +14,24 @@ class DatasetLoader:
     def __init__(self, dataset_folder: str, features_folder: str, actors: list, cams: list, drop_offair: bool):
         self.dataset_folder = dataset_folder
         self.features_folder = features_folder
-        self.actors = [int(a) for a in actors]
-        self.cams = [int(c) for c in cams]
+        self.actors = actors
+        self.cams = cams
         self.drop_offair = drop_offair
 
     def load(self) -> tuple[pd.Series, np.ndarray]:
         datasets_paths = lsdir(self.dataset_folder)
         features_paths = lsdir(self.features_folder)
 
-        indexes = []
-        for i, filename in enumerate(datasets_paths):
-            if int(filename[filename.find("Actor_") + 6]) not in self.actors:
-                indexes.append(i)
+        if self.actors:
+            self.actors = [int(a) for a in self.actors]
+            indexes = []
+            for i, filename in enumerate(datasets_paths):
+                if int(filename[filename.find("Actor_") + 6]) not in self.actors:
+                    indexes.append(i)
 
-        for index in sorted(indexes, reverse=True):
-            del datasets_paths[index]
-            del features_paths[index]
+            for index in sorted(indexes, reverse=True):
+                del datasets_paths[index]
+                del features_paths[index]
 
         # load features
         all_features = []
@@ -56,12 +58,14 @@ class DatasetLoader:
 
         dataset["cam"] = pd.Series(cams)
 
-        cams_to_drop_mask = ~dataset["cam"].isin(self.cams)
-        dataset = dataset.loc[~cams_to_drop_mask, :]
-        dataset.reset_index(drop=True, inplace=True)
+        if self.cams:
+            self.cams = [int(c) for c in self.cams]
+            cams_to_drop_mask = ~dataset["cam"].isin(self.cams)
+            dataset = dataset.loc[~cams_to_drop_mask, :]
+            dataset.reset_index(drop=True, inplace=True)
 
-        all_features = np.delete(all_features, cams_to_drop_mask.tolist(), axis=0)
-        all_features = normalize(all_features, axis=1, norm="l1")
+            all_features = np.delete(all_features, cams_to_drop_mask.tolist(), axis=0)
+            all_features = normalize(all_features, axis=1, norm="l1")
 
         # drop off air frames
         if self.drop_offair:

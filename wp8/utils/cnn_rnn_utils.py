@@ -76,7 +76,7 @@ class DatasetLoader:
 
 
 def load_and_split(
-    train_actors: list, val_actors: list, train_cams: list, val_cams: list, split_ratio: float, drop_offair: bool, undersample: bool
+    train_actors: list, val_actors: list, train_cams: list, val_cams: list, split_ratio: float, drop_offair: bool, undersample: bool, micro_classes: bool
 ) -> tuple[np.ndarray, list, np.ndarray, list, list, list]:
     # Load dataset and features
     features_folder = "outputs/dataset/features"
@@ -92,9 +92,12 @@ def load_and_split(
 
         X_train = train_features
         X_val = val_features
-
-        y_train = train_dataset["micro_labels"].tolist()
-        y_val = val_dataset["micro_labels"].tolist()
+        if micro_classes:
+            y_train = train_dataset["micro_labels"].tolist()
+            y_val = val_dataset["micro_labels"].tolist()
+        else:
+            y_train = train_dataset["macro_labels"].tolist()
+            y_val = val_dataset["macro_labels"].tolist()
 
         cams_train = train_dataset["cam"].tolist()
         cams_val = val_dataset["cam"].tolist()
@@ -118,9 +121,12 @@ def load_and_split(
         X_train = np.array(features[0:split, :])
         X_val = np.array(features[split:, :])
 
-        y_train = dataset["micro_labels"][0:split].tolist()
-
-        y_val = dataset["micro_labels"][split:].tolist()
+        if micro_classes:
+            y_train = dataset["micro_labels"][0:split].tolist()
+            y_val = dataset["micro_labels"][split:].tolist()
+        else:
+            y_train = dataset["macro_labels"][0:split].tolist()
+            y_val = dataset["macro_labels"][split:].tolist()
 
         cams_train = dataset["cams"][0:split].tolist()
         cams_val = dataset["cams"][split:].tolist()

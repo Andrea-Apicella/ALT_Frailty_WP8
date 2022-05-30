@@ -189,38 +189,3 @@ def get_timeseries_labels_encoded(y_train, y_val, cfg) -> tuple[list, list, Labe
     return y_train_series, y_val_series, enc, d_class_weights, enc.classes_.tolist()
 
 
-def get_time_series(X: np.ndarray, y: list, cams: list, batch_size: int, seq_len: int, stride: int, is_train: bool):
-    n_windows: int = (batch_size - seq_len) // stride + 1
-    n_batches: int = len(y) // batch_size
-    n_series: int = n_windows * n_batches
-    time_series: list = [np.empty(2048)] * n_series
-    y_s: list = [None] * n_series
-    s: int = 0
-    for w in trange(n_series):
-        s = w * stride
-        features_seq = X[s : s + seq_len, :]
-        labels_seq = y[s : s + seq_len]
-        cams_seq = cams[s : s + seq_len]
-        curr_cam = mode(cams_seq)
-        for i, _ in enumerate(cams_seq):
-            if cams_seq[i] != curr_cam:
-                features_seq[i] = np.zeros(2048)  # padding
-                labels_seq[i] = -10  # padding
-        time_series[w] = features_seq
-        # convert time-step labels in one label per time-series
-        labels_seq = [l for l in labels_seq if l != -10]
-        label = mode(labels_seq)  # label with most occurrence
-        y_s[w] = label
-
-    if is_train is True:
-        enc = LabelEncoder()
-        enc = enc.fit(y_s)
-        mapping = dict(zip(enc.classes_, range(1, len(enc.classes_) + 1)))
-        print(f"Classes mapping: {mapping}")
-        y_s = enc.fit_transform(y_s)
-        class_weights = compute_class_weight(class_weight="balanced", classes=np.unique(y_s), y=y_s)
-        d_class_weights = dict(enumerate(class_weights))
-        print(f"\nClass weights for train series: {class_weights}")
-        return np.array(time_series), y_s, d_class_weights, enc.classes_.tolist()
-    else:
-        return np.array(time_series), y_s

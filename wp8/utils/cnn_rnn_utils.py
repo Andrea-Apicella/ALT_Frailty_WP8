@@ -113,7 +113,7 @@ def load_and_split(
             X_train, y_train = us.fit_resample(X_train, y_train)
             print(f"Train set distribution after undersampling: {Counter(y_train)}")
 
-        return X_train, y_train, X_val, y_val, cams_train, cams_val
+        return normalize(X_train), y_train, normalize(X_val), y_val, cams_train, cams_val
 
     else:
         # do the train-validation split
@@ -142,7 +142,7 @@ def load_and_split(
             X_train, y_train = us.fit_resample(X_train, y_train)
             print(f"Train set distribution after undersampling: {Counter(y_train)}")
 
-        return X_train, y_train, X_val, y_val, cams_train, cams_val
+        return normalize(X_train), y_train, normalize(X_val), y_val, cams_train, cams_val
 
 
 def get_timeseries_labels_encoded(y_train, y_val, cfg) -> tuple[list, list, LabelEncoder, dict, list]:
@@ -187,5 +187,3 @@ def get_timeseries_labels_encoded(y_train, y_val, cfg) -> tuple[list, list, Labe
 
     print(f"\nAfter ENCODING -- len(y_train_series): {len(y_train_series)} len(y_val_series): {len(y_val_series)}")
     return y_train_series, y_val_series, enc, d_class_weights, enc.classes_.tolist()
-
-

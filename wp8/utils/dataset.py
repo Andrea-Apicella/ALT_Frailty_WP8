@@ -46,11 +46,11 @@ class TimeSeriesGenerator:
 
         self.labels_encoder = self.labels_encoder.fit(y_series)
         mapping = dict(zip(self.labels_encoder.classes_, range(1, len(self.labels_encoder.classes_) + 1)))
-        print(f"Classes mapping:\n{pd.DataFrame([mapping])}")
         y_series = self.labels_encoder.fit_transform(y_series)
         class_weights = compute_class_weight(class_weight="balanced", classes=np.unique(y_series), y=y_series)
         d_class_weights = dict(enumerate(class_weights))
-        print(f"\nClass weights for train series:\n{pd.DataFrame([class_weights])}")
+        print(f"Classes mapping:\n{mapping}")
+        print(f"\nClass weights for train series:\n{class_weights}")
 
         return np.array(X_series), y_series, d_class_weights, self.labels_encoder.classes_.tolist()
 

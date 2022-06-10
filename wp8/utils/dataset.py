@@ -39,8 +39,7 @@ class TimeSeriesGenerator:
         return time_series, y_s
 
     def get_train_series(self, X: np.ndarray, y: list, cams: list) -> tuple[np.ndarray, np.ndarray, dict, list]:
-        n_batches: int = len(y) // self.batch_size
-        n_series: int = self.n_windows * n_batches
+        n_series: int = (len(y) - self.seq_len) // self.stride + 1
 
         X_series, y_series = self.__to_time_series(X, y, cams, n_series)
 
@@ -55,8 +54,7 @@ class TimeSeriesGenerator:
         return np.array(X_series), y_series, d_class_weights, self.labels_encoder.classes_.tolist()
 
     def get_val_series(self, X: np.ndarray, y: list, cams: list):
-        n_batches: int = len(y) // self.batch_size
-        n_series: int = self.n_windows * n_batches
+        n_series: int = (len(y) - self.seq_len) // self.stride + 1
 
         X_series, y_series = self.__to_time_series(X, y, cams, n_series)
 

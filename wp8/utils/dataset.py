@@ -5,7 +5,8 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils.class_weight import compute_class_weight
 from this import d
-from tqdm import trange
+from tqdm.notebook import trange
+from collections import Counter
 
 
 class TimeSeriesGenerator:
@@ -42,16 +43,15 @@ class TimeSeriesGenerator:
         n_series: int = (len(y) - self.seq_len) // self.stride + 1
 
         X_series, y_series = self.__to_time_series(X, y, cams, n_series)
-
+        distrib = Counter(y_series)
         self.labels_encoder = self.labels_encoder.fit(y_series)
         mapping = dict(zip(self.labels_encoder.classes_, range(1, len(self.labels_encoder.classes_) + 1)))
         y_series = self.labels_encoder.fit_transform(y_series)
-        class_weights = compute_class_weight(class_weight="balanced", classes=np.unique(y_series), y=y_series)
-        d_class_weights = dict(enumerate(class_weights))
-        print(f"Classes mapping:\n{mapping}")
-        print(f"\nClass weights for train series:\n{class_weights}")
 
-        return np.array(X_series), y_series, d_class_weights, self.labels_encoder.classes_.tolist()
+        print(f"Classes mapping:\n{mapping}")
+        print(f"\nClass distribution:\n{distrib}")
+
+        return np.array(X_series), y_series, distrib, self.labels_encoder.classes_.tolist()
 
     def get_val_series(self, X: np.ndarray, y: list, cams: list):
         n_series: int = (len(y) - self.seq_len) // self.stride + 1

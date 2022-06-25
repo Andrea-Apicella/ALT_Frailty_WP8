@@ -18,7 +18,8 @@ class BaseOptions:
         self.parser.add_argument("--micro_classes", action="store_true", help="Wheter to use micro classes instead of the three macro classes (ADL, fall, lie_down)")
         self.parser.add_argument("--split_ratio", type=float, default=0.7, help="Train-validation split ratio. Default: 0.7")
         self.parser.add_argument("--drop_offair", action="store_true", help="Wheter to drop the off_air frames in which the actor is repositioning between sequences. Default: True")
-        self.parser.add_argument("--undersample", action="store_true", help="Wheter to perform an undersample of the dataset to obtain balanced classes. Default: False")
+        self.parser.add_argument("--oversampler", type=str, default="None" help="Which over sampling technique to use. Default: None. Possible values: random, smote")
+        self.parser.add_argument("--undersampler", type=str, default="None" help="Which under sampling technique to use. Default: None. Possible values: random")
 
     def parse(self):
         if not self.initialized:

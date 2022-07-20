@@ -21,7 +21,7 @@ from wandb.keras import WandbCallback
 import wandb
 from wp8.options.train_options import TrainOptions
 from wp8.pre_processing.generators import TimeSeriesGenerator as TSG
-from wp8.pre_processing.utils import safe_mkdir
+from wp8.utils.utils import safe_mkdir
 from wp8.utils.cnn_rnn_utils import get_timeseries_labels_encoded, load_and_split
 
 os.environ["TF_CUDNN_DETERMINISTIC"] = "1"

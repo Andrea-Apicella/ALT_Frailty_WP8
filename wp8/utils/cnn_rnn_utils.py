@@ -7,7 +7,7 @@ from imblearn.under_sampling import NearMiss
 from sklearn.preprocessing import LabelEncoder, normalize
 from sklearn.utils.class_weight import compute_class_weight
 from tqdm.notebook import tqdm, trange
-from wp8.pre_processing.utils import listdir_nohidden_sorted as lsdir
+from wp8.utils.utils import listdir_nohidden_sorted as lsdir
 
 
 class DatasetLoader:

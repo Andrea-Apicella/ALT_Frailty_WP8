@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from tqdm import tqdm, trange
-from wp8.pre_processing.utils import listdir_nohidden_sorted
+from wp8.utils.utils import listdir_nohidden_sorted
 
 
 class ProcessDataset:
